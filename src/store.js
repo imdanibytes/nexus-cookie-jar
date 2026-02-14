@@ -4,8 +4,6 @@ const path = require("path");
 const DATA_DIR = process.env.NEXUS_DATA_DIR || path.join(__dirname, "data");
 const DATA_FILE = path.join(DATA_DIR, "cookies.json");
 const HUMAN_DATA_FILE = path.join(DATA_DIR, "human-cookies.json");
-const REDEMPTION_LOG_FILE = path.join(DATA_DIR, "redemption-log.json");
-
 function load() {
   try {
     const raw = fs.readFileSync(DATA_FILE, "utf8");
@@ -33,55 +31,36 @@ function addCookie(message, category = "win") {
   return cookie;
 }
 
-// ── Redemption Log ──
-
-function loadRedemptionLog() {
-  try {
-    const raw = fs.readFileSync(REDEMPTION_LOG_FILE, "utf8");
-    return JSON.parse(raw);
-  } catch {
-    return [];
-  }
-}
-
-function saveRedemptionLog(log) {
-  fs.mkdirSync(path.dirname(REDEMPTION_LOG_FILE), { recursive: true });
-  fs.writeFileSync(REDEMPTION_LOG_FILE, JSON.stringify(log, null, 2));
-}
-
-/** Pull a random cookie from the jar, log it, and remove it. Returns null if empty. */
+/** Mark a random unredeemed cookie as redeemed. Returns null if none available. */
 function grabCookie(reason) {
   const cookies = load();
-  if (cookies.length === 0) return null;
-  const idx = Math.floor(Math.random() * cookies.length);
-  const [cookie] = cookies.splice(idx, 1);
+  const available = cookies.filter((c) => !c.redeemed);
+  if (available.length === 0) return null;
+  const pick = available[Math.floor(Math.random() * available.length)];
+  const idx = cookies.findIndex((c) => c.id === pick.id);
+  cookies[idx].redeemed = true;
+  cookies[idx].redeemed_at = new Date().toISOString();
+  cookies[idx].reason = reason || null;
   save(cookies);
-
-  const log = loadRedemptionLog();
-  log.push({
-    ...cookie,
-    reason: reason || null,
-    redeemed_at: new Date().toISOString(),
-  });
-  saveRedemptionLog(log);
-
-  return cookie;
+  return cookies[idx];
 }
 
 function listCookies(category) {
-  const cookies = load();
+  const cookies = load().filter((c) => !c.redeemed);
   if (category) return cookies.filter((c) => c.category === category);
   return cookies;
 }
 
 function countCookies() {
-  return load().length;
+  return load().filter((c) => !c.redeemed).length;
 }
 
 function trimToMax(max) {
   const cookies = load();
-  if (cookies.length > max) {
-    save(cookies.slice(cookies.length - max));
+  const unredeemed = cookies.filter((c) => !c.redeemed);
+  if (unredeemed.length > max) {
+    const toRemove = unredeemed.slice(0, unredeemed.length - max).map((c) => c.id);
+    save(cookies.filter((c) => !toRemove.includes(c.id)));
   }
 }
 
@@ -142,7 +121,7 @@ function countHumanCookies() {
 }
 
 function redemptionLog() {
-  return loadRedemptionLog();
+  return load().filter((c) => c.redeemed);
 }
 
 module.exports = {

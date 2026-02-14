@@ -427,7 +427,7 @@
 
     <div class="add-section">
       <div class="add-label">Grant a cookie</div>
-      <form class="add-form" id="add-form">
+      <form class="add-form" id="add-form" style="flex-wrap: wrap;">
         <input
           type="text"
           class="add-input"
@@ -437,6 +437,15 @@
           autocomplete="off"
         />
         <button type="submit" class="add-btn" id="add-btn">Grant</button>
+        <input
+          type="text"
+          class="add-input"
+          id="scope-input"
+          placeholder="Redeemable for... (optional)"
+          maxlength="280"
+          autocomplete="off"
+          style="width: 100%; margin-top: 0.375rem;"
+        />
       </form>
       <div class="categories" id="categories">
         <button class="cat-btn active" data-cat="win">🏆 Good call</button>
@@ -509,11 +518,13 @@
       updateJar();
     }
 
-    async function addCookie(message, category) {
+    async function addCookie(message, category, scope) {
+      const body = { message, category };
+      if (scope) body.scope = scope;
       const res = await fetch('/api/cookies', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, category })
+        body: JSON.stringify(body)
       });
       const cookie = await res.json();
       cookies.push(cookie);
@@ -556,7 +567,7 @@
       cookieList.innerHTML = sorted.map(c => `
         <div class="cookie-item">
           <span class="cookie-emoji">${CATEGORY_EMOJI[c.category] || ''}</span>
-          <span class="cookie-msg">${escapeHtml(c.message)}</span>
+          <span class="cookie-msg">${escapeHtml(c.message)}${c.scope ? '<br><span style="font-size:0.6875rem;color:var(--color-nx-text-ghost)">Redeemable for: ' + escapeHtml(c.scope) + '</span>' : ''}</span>
           <span class="cookie-date">${new Date(c.created_at).toLocaleDateString()}</span>
         </div>
       `).join('');
@@ -603,7 +614,7 @@
       humanJarContent.innerHTML = sorted.map(c => `
         <div class="human-cookie-item${c.redeemed ? ' redeemed' : ''}">
           <span class="human-cookie-code">${c.code}</span>
-          <span class="human-cookie-msg">${escapeHtml(c.message)}</span>
+          <span class="human-cookie-msg">${escapeHtml(c.message)}${c.scope ? '<br><span style="font-size:0.6875rem;color:var(--color-nx-text-ghost)">Redeemable for: ' + escapeHtml(c.scope) + '</span>' : ''}</span>
           <span class="human-cookie-date">${c.redeemed ? 'redeemed' : new Date(c.created_at).toLocaleDateString()}</span>
         </div>
       `).join('');
@@ -616,15 +627,19 @@
     }
 
     // ── Event Handlers ──
+    const scopeInput = document.getElementById('scope-input');
+
     addForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const msg = addInput.value.trim();
       if (!msg) return;
+      const scope = scopeInput.value.trim();
 
       addBtn.disabled = true;
       try {
-        await addCookie(msg, selectedCategory);
+        await addCookie(msg, selectedCategory, scope || null);
         addInput.value = '';
+        scopeInput.value = '';
         // Shake the jar to show it was added
         jarEl.classList.remove('shake');
         void jarEl.offsetWidth;

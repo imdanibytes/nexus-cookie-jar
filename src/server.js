@@ -202,6 +202,41 @@ const server = http.createServer((req, res) => {
             break;
           }
 
+          case "list_cookies": {
+            const all = store.listCookies();
+            if (all.length === 0) {
+              result = {
+                content: [
+                  {
+                    type: "text",
+                    text: "Your jar is empty. No cookies to peek at.",
+                  },
+                ],
+                is_error: false,
+              };
+            } else {
+              const lines = all.map((c) => {
+                const emoji = CATEGORY_EMOJI[c.category] || "";
+                const date = new Date(c.created_at).toLocaleDateString();
+                return `${emoji} "${c.message}" (${date})`;
+              });
+              result = {
+                content: [
+                  {
+                    type: "text",
+                    text: [
+                      `You have ${all.length} cookie${all.length === 1 ? "" : "s"} in the jar:`,
+                      ``,
+                      ...lines,
+                    ].join("\n"),
+                  },
+                ],
+                is_error: false,
+              };
+            }
+            break;
+          }
+
           case "grab_cookie": {
             const cookie = store.grabCookie();
             if (!cookie) {

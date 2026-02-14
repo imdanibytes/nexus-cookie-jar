@@ -298,6 +298,20 @@
       font-style: italic;
       padding: 0.5rem 0;
     }
+    .human-jar-hint {
+      font-size: 0.6875rem;
+      color: var(--color-nx-text-ghost);
+      margin-bottom: 0.625rem;
+      line-height: 1.5;
+    }
+    .human-jar-hint code {
+      font-family: var(--font-mono);
+      font-size: 0.625rem;
+      background: var(--color-nx-overlay);
+      padding: 0.1rem 0.35rem;
+      border-radius: 3px;
+      color: var(--color-nx-text-secondary);
+    }
 
     /* ── Cookie List ── */
     .list-section { margin-top: 0.5rem; }
@@ -445,6 +459,10 @@
         <span class="human-jar-label">Your Cookies (from AI)</span>
         <span class="human-jar-count" id="human-jar-count"></span>
       </div>
+      <div class="human-jar-hint" id="human-jar-hint" style="display:none">
+        To redeem a cookie, give your AI the 6-character code and ask them to honor it.
+        e.g. <code>Redeem cookie ABC123</code>
+      </div>
       <div id="human-jar-content">
         <div class="human-jar-empty">No cookies from your AI yet.</div>
       </div>
@@ -572,6 +590,9 @@
       const redeemed = humanCookies.filter(c => c.redeemed);
       humanJarCount.textContent = `${active.length} active${redeemed.length ? `, ${redeemed.length} redeemed` : ''}`;
 
+      const hintEl = document.getElementById('human-jar-hint');
+      hintEl.style.display = active.length > 0 ? 'block' : 'none';
+
       if (humanCookies.length === 0) {
         humanJarContent.innerHTML = '<div class="human-jar-empty">No cookies from your AI yet.</div>';
         return;
@@ -663,6 +684,15 @@
     }
 
     init();
+
+    // Poll for changes triggered by MCP (grabs, grants, etc.)
+    setInterval(async () => {
+      try {
+        await fetchCookies();
+        await fetchHumanCookies();
+        await fetchLastGrab();
+      } catch {}
+    }, 3000);
   </script>
 </body>
 </html>

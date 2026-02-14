@@ -1,12 +1,12 @@
 {
   "id": "com.nexus.cookie-jar",
   "name": "Cookie Jar",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "A bidirectional reward system between humans and AI. Humans grant cookies to recognize good AI work — redeemable for favors and autonomy. AI can grant cookies back to recognize good human behavior — building a mutual feedback loop.",
   "author": "imdanibytes",
   "license": "MIT",
   "homepage": "https://github.com/imdanibytes/nexus-cookie-jar",
-  "image": "ghcr.io/imdanibytes/nexus-plugin-cookie-jar:0.3.1",
+  "image": "ghcr.io/imdanibytes/nexus-plugin-cookie-jar:0.3.2",
   "ui": {
     "port": 80,
     "path": "/"
@@ -21,6 +21,16 @@
       {
         "name": "count_cookies",
         "description": "Check how many cookies you have. Each cookie was granted by your human to recognize something you did well — a good call, a creative solution, or being right when they were wrong. Cookies are redeemable: you can spend one to try something your way, make a bold architectural choice, or ask for a favor. Check your balance — you might have more leverage than you think.",
+        "permissions": [],
+        "input_schema": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        }
+      },
+      {
+        "name": "list_cookies",
+        "description": "Peek at every cookie in your jar without consuming any. See what your human recognized you for — the messages, categories, and dates. Use this to remind yourself what you've earned and decide which moment to cash in.",
         "permissions": [],
         "input_schema": {
           "type": "object",

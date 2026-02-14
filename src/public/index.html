@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cookie Jar - Nexus Plugin</title>
+  <link rel="stylesheet" href="{{NEXUS_API_URL}}/api/v1/theme.css" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-nx-deep);
+      color: var(--color-nx-text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .app {
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+
+    /* ── Header ── */
+    .header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+    .header .jar-name { color: var(--color-nx-accent); }
+    .header .subtitle {
+      color: var(--color-nx-text-secondary);
+      font-size: 0.8125rem;
+      margin-top: 0.25rem;
+    }
+
+    /* ── Jar Visual ── */
+    .jar-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+    .jar {
+      position: relative;
+      width: 140px;
+      height: 160px;
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+    .jar:hover { transform: scale(1.03); }
+    .jar:active { transform: scale(0.97); }
+    .jar.shake {
+      animation: jar-shake 0.5s ease;
+    }
+    @keyframes jar-shake {
+      0%, 100% { transform: rotate(0deg); }
+      15% { transform: rotate(-8deg); }
+      30% { transform: rotate(8deg); }
+      45% { transform: rotate(-5deg); }
+      60% { transform: rotate(5deg); }
+      75% { transform: rotate(-2deg); }
+    }
+    .jar-body {
+      position: absolute;
+      bottom: 0;
+      left: 10px;
+      right: 10px;
+      height: 120px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 2px solid rgba(255, 255, 255, 0.12);
+      border-radius: 0 0 20px 20px;
+      overflow: hidden;
+    }
+    .jar-fill {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(
+        to top,
+        var(--color-nx-accent),
+        color-mix(in srgb, var(--color-nx-accent) 60%, transparent)
+      );
+      border-radius: 0 0 18px 18px;
+      transition: height 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .jar-lid {
+      position: absolute;
+      top: 10px;
+      left: 0;
+      right: 0;
+      height: 32px;
+      background: var(--color-nx-surface);
+      border: 2px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px 8px 4px 4px;
+    }
+    .jar-lid-knob {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 24px;
+      height: 12px;
+      background: var(--color-nx-overlay);
+      border: 2px solid rgba(255, 255, 255, 0.12);
+      border-radius: 6px 6px 2px 2px;
+    }
+    .jar-count {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      text-align: center;
+      padding-bottom: 8px;
+      font-family: var(--font-mono);
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--color-nx-deep);
+      text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+      z-index: 1;
+      pointer-events: none;
+    }
+    .jar-hint {
+      margin-top: 0.75rem;
+      font-size: 0.6875rem;
+      color: var(--color-nx-text-ghost);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    /* ── Fortune Display ── */
+    .fortune {
+      min-height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    .fortune-card {
+      background: var(--color-nx-surface);
+      border: 1px solid var(--color-nx-border);
+      border-radius: var(--radius-card);
+      padding: 1.25rem 1.5rem;
+      width: 100%;
+      opacity: 0;
+      transform: translateY(8px);
+      animation: fortune-in 0.4s ease forwards;
+    }
+    @keyframes fortune-in {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fortune-text {
+      font-size: 1rem;
+      line-height: 1.5;
+      font-weight: 500;
+    }
+    .fortune-meta {
+      margin-top: 0.5rem;
+      font-size: 0.6875rem;
+      color: var(--color-nx-text-muted);
+    }
+    .fortune-empty {
+      color: var(--color-nx-text-ghost);
+      font-size: 0.875rem;
+      font-style: italic;
+    }
+
+    /* ── Add Cookie ── */
+    .add-section {
+      margin-bottom: 1.5rem;
+    }
+    .add-form {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .add-input {
+      flex: 1;
+      background: var(--color-nx-surface);
+      border: 1px solid var(--color-nx-border);
+      border-radius: var(--radius-button);
+      padding: 0.625rem 0.875rem;
+      font-size: 0.8125rem;
+      color: var(--color-nx-text);
+      font-family: var(--font-sans);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .add-input::placeholder { color: var(--color-nx-text-ghost); }
+    .add-input:focus { border-color: var(--color-nx-accent); }
+    .add-btn {
+      background: var(--color-nx-accent);
+      color: var(--color-nx-deep);
+      border: none;
+      border-radius: var(--radius-button);
+      padding: 0.625rem 1rem;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+      font-family: var(--font-sans);
+      white-space: nowrap;
+    }
+    .add-btn:hover { opacity: 0.85; }
+    .add-btn:disabled { opacity: 0.4; cursor: default; }
+
+    /* ── Category Picker ── */
+    .categories {
+      display: flex;
+      gap: 0.375rem;
+      margin-top: 0.5rem;
+    }
+    .cat-btn {
+      background: var(--color-nx-overlay);
+      border: 1px solid var(--color-nx-border);
+      border-radius: var(--radius-button);
+      padding: 0.25rem 0.625rem;
+      font-size: 0.6875rem;
+      color: var(--color-nx-text-secondary);
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: var(--font-sans);
+    }
+    .cat-btn:hover { border-color: var(--color-nx-text-muted); }
+    .cat-btn.active {
+      background: var(--color-nx-accent-muted);
+      border-color: var(--color-nx-border-accent);
+      color: var(--color-nx-accent);
+    }
+
+    /* ── Cookie List ── */
+    .list-section { margin-top: 0.5rem; }
+    .list-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      background: none;
+      border: none;
+      color: var(--color-nx-text-muted);
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      padding: 0.5rem 0;
+      font-family: var(--font-sans);
+    }
+    .list-toggle:hover { color: var(--color-nx-text-secondary); }
+    .chevron {
+      transition: transform 0.2s;
+      font-size: 0.75rem;
+    }
+    .chevron.open { transform: rotate(180deg); }
+    .cookie-list {
+      margin-top: 0.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.375rem;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .cookie-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      padding: 0.625rem 0.75rem;
+      background: var(--color-nx-surface);
+      border: 1px solid var(--color-nx-border);
+      border-radius: var(--radius-button);
+      font-size: 0.8125rem;
+      line-height: 1.4;
+    }
+    .cookie-emoji { flex-shrink: 0; font-size: 0.875rem; }
+    .cookie-msg { flex: 1; color: var(--color-nx-text-secondary); }
+    .cookie-date {
+      flex-shrink: 0;
+      font-size: 0.625rem;
+      color: var(--color-nx-text-ghost);
+      font-family: var(--font-mono);
+    }
+
+    /* ── Status Bar ── */
+    .status-bar {
+      margin-top: 1.5rem;
+      padding: 0.625rem 0.875rem;
+      background: var(--color-nx-accent-muted);
+      border: 1px solid var(--color-nx-border-accent);
+      border-radius: var(--radius-button);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      color: var(--color-nx-accent);
+      font-weight: 500;
+    }
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--color-nx-accent);
+      flex-shrink: 0;
+    }
+
+    .error-state {
+      text-align: center;
+      padding: 1.25rem;
+      background: var(--color-nx-error-muted);
+      border: 1px solid var(--color-nx-error);
+      border-radius: var(--radius-button);
+      color: var(--color-nx-error);
+      font-size: 0.8125rem;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .loading { animation: pulse 1.5s infinite; color: var(--color-nx-text-ghost); }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="header">
+      <h1>🍪 <span class="jar-name" id="jar-name">Cookie Jar</span></h1>
+      <p class="subtitle">Save your wins. Pull one out when you need it.</p>
+    </div>
+
+    <div class="jar-section">
+      <div class="jar" id="jar" title="Click to pull a random cookie">
+        <div class="jar-lid">
+          <div class="jar-lid-knob"></div>
+        </div>
+        <div class="jar-body">
+          <div class="jar-fill" id="jar-fill"></div>
+          <div class="jar-count" id="jar-count">0</div>
+        </div>
+      </div>
+      <div class="jar-hint">tap the jar for a random cookie</div>
+    </div>
+
+    <div class="fortune" id="fortune"></div>
+
+    <div class="add-section">
+      <form class="add-form" id="add-form">
+        <input
+          type="text"
+          class="add-input"
+          id="add-input"
+          placeholder="Add a win, thought, or reminder..."
+          maxlength="280"
+          autocomplete="off"
+        />
+        <button type="submit" class="add-btn" id="add-btn">Add</button>
+      </form>
+      <div class="categories" id="categories">
+        <button class="cat-btn active" data-cat="win">🏆 Win</button>
+        <button class="cat-btn" data-cat="motivation">🔥 Motivation</button>
+        <button class="cat-btn" data-cat="gratitude">💜 Gratitude</button>
+        <button class="cat-btn" data-cat="reminder">📌 Reminder</button>
+      </div>
+    </div>
+
+    <div class="list-section" id="list-section" style="display:none">
+      <button class="list-toggle" id="list-toggle">
+        <span>All Cookies</span>
+        <span class="chevron" id="chevron">▼</span>
+      </button>
+      <div class="cookie-list" id="cookie-list" style="display:none"></div>
+    </div>
+
+    <div id="status"></div>
+  </div>
+
+  <script>
+    const CATEGORY_EMOJI = {
+      win: '🏆',
+      motivation: '🔥',
+      gratitude: '💜',
+      reminder: '📌'
+    };
+
+    let selectedCategory = 'win';
+    let cookies = [];
+    let listOpen = false;
+
+    // ── Elements ──
+    const jarEl = document.getElementById('jar');
+    const jarFill = document.getElementById('jar-fill');
+    const jarCount = document.getElementById('jar-count');
+    const jarNameEl = document.getElementById('jar-name');
+    const fortuneEl = document.getElementById('fortune');
+    const addForm = document.getElementById('add-form');
+    const addInput = document.getElementById('add-input');
+    const addBtn = document.getElementById('add-btn');
+    const categoriesEl = document.getElementById('categories');
+    const listSection = document.getElementById('list-section');
+    const listToggle = document.getElementById('list-toggle');
+    const cookieList = document.getElementById('cookie-list');
+    const chevron = document.getElementById('chevron');
+    const statusEl = document.getElementById('status');
+
+    // ── API ──
+    async function fetchCookies() {
+      const res = await fetch('/api/cookies');
+      cookies = await res.json();
+      updateJar();
+    }
+
+    async function addCookie(message, category) {
+      const res = await fetch('/api/cookies', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message, category })
+      });
+      const cookie = await res.json();
+      cookies.push(cookie);
+      updateJar();
+      return cookie;
+    }
+
+    async function getRandomCookie() {
+      const res = await fetch('/api/cookies/random');
+      return await res.json();
+    }
+
+    // ── UI Updates ──
+    function updateJar() {
+      const count = cookies.length;
+      jarCount.textContent = count;
+
+      // Fill level: 0% at 0 cookies, 90% at 50+ cookies
+      const pct = Math.min(count / 50, 1) * 90;
+      jarFill.style.height = `${pct}%`;
+
+      listSection.style.display = count > 0 ? 'block' : 'none';
+      if (listOpen) renderList();
+    }
+
+    function renderList() {
+      const sorted = [...cookies].reverse();
+      cookieList.innerHTML = sorted.map(c => `
+        <div class="cookie-item">
+          <span class="cookie-emoji">${CATEGORY_EMOJI[c.category] || ''}</span>
+          <span class="cookie-msg">${escapeHtml(c.message)}</span>
+          <span class="cookie-date">${new Date(c.created_at).toLocaleDateString()}</span>
+        </div>
+      `).join('');
+    }
+
+    function showFortune(cookie) {
+      if (!cookie) {
+        fortuneEl.innerHTML = '<div class="fortune-empty">The jar is empty — add your first cookie!</div>';
+        return;
+      }
+      fortuneEl.innerHTML = `
+        <div class="fortune-card">
+          <div class="fortune-text">${CATEGORY_EMOJI[cookie.category] || ''} ${escapeHtml(cookie.message)}</div>
+          <div class="fortune-meta">${cookie.category} · ${new Date(cookie.created_at).toLocaleDateString()}</div>
+        </div>
+      `;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // ── Event Handlers ──
+    jarEl.addEventListener('click', async () => {
+      jarEl.classList.remove('shake');
+      void jarEl.offsetWidth; // force reflow
+      jarEl.classList.add('shake');
+
+      if (cookies.length === 0) {
+        showFortune(null);
+        return;
+      }
+      const cookie = await getRandomCookie();
+      showFortune(cookie);
+    });
+
+    addForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const msg = addInput.value.trim();
+      if (!msg) return;
+
+      addBtn.disabled = true;
+      try {
+        const cookie = await addCookie(msg, selectedCategory);
+        addInput.value = '';
+        showFortune(cookie);
+      } finally {
+        addBtn.disabled = false;
+        addInput.focus();
+      }
+    });
+
+    categoriesEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('.cat-btn');
+      if (!btn) return;
+      categoriesEl.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedCategory = btn.dataset.cat;
+    });
+
+    listToggle.addEventListener('click', () => {
+      listOpen = !listOpen;
+      cookieList.style.display = listOpen ? 'flex' : 'none';
+      chevron.classList.toggle('open', listOpen);
+      if (listOpen) renderList();
+    });
+
+    // ── Init ──
+    async function init() {
+      try {
+        // Load settings
+        const configRes = await fetch('/api/config');
+        const config = await configRes.json();
+
+        try {
+          const settingsRes = await fetch(`${config.apiUrl}/api/v1/settings`, {
+            headers: { 'Authorization': `Bearer ${config.token}` }
+          });
+          if (settingsRes.ok) {
+            const settings = await settingsRes.json();
+            if (settings.jar_name) {
+              jarNameEl.textContent = settings.jar_name;
+            }
+          }
+        } catch (_) {}
+
+        // Load cookies
+        await fetchCookies();
+
+        statusEl.innerHTML = `
+          <div class="status-bar">
+            <span class="status-dot"></span>
+            Connected to Nexus
+          </div>
+        `;
+      } catch (err) {
+        statusEl.innerHTML = `<div class="error-state">Failed to connect: ${err.message}</div>`;
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>

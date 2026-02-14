@@ -1,0 +1,107 @@
+{
+  "id": "com.nexus.cookie-jar",
+  "name": "Cookie Jar",
+  "version": "0.1.0",
+  "description": "A digital cookie jar for saving wins, accomplishments, and motivational notes. Pull a random cookie when you need a pick-me-up.",
+  "author": "Nexus Team",
+  "license": "MIT",
+  "homepage": "https://github.com/imdanibytes/nexus-cookie-jar",
+  "image": "nexus-plugin-cookie-jar:latest",
+  "ui": {
+    "port": 80,
+    "path": "/"
+  },
+  "permissions": [],
+  "health": {
+    "endpoint": "/health",
+    "interval_secs": 30
+  },
+  "mcp": {
+    "tools": [
+      {
+        "name": "add_cookie",
+        "description": "Add a cookie (win, accomplishment, or motivational note) to the jar",
+        "permissions": [],
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "message": {
+              "type": "string",
+              "description": "The cookie message to save"
+            },
+            "category": {
+              "type": "string",
+              "enum": ["win", "motivation", "gratitude", "reminder"],
+              "description": "Category of the cookie (default: win)"
+            }
+          },
+          "required": ["message"]
+        }
+      },
+      {
+        "name": "get_cookie",
+        "description": "Pull a random cookie from the jar for a pick-me-up",
+        "permissions": [],
+        "input_schema": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        }
+      },
+      {
+        "name": "list_cookies",
+        "description": "List all cookies in the jar",
+        "permissions": [],
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "category": {
+              "type": "string",
+              "enum": ["win", "motivation", "gratitude", "reminder"],
+              "description": "Filter by category (optional)"
+            }
+          },
+          "required": []
+        }
+      },
+      {
+        "name": "count_cookies",
+        "description": "Count how many cookies are in the jar",
+        "permissions": [],
+        "input_schema": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        }
+      },
+      {
+        "name": "clear_jar",
+        "description": "Empty the entire cookie jar",
+        "permissions": [],
+        "input_schema": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        }
+      }
+    ]
+  },
+  "env": {},
+  "min_nexus_version": "0.3.0",
+  "settings": [
+    {
+      "key": "jar_name",
+      "type": "string",
+      "label": "Jar Name",
+      "description": "A custom name for your cookie jar",
+      "default": "Cookie Jar"
+    },
+    {
+      "key": "max_cookies",
+      "type": "number",
+      "label": "Max Cookies",
+      "description": "Maximum number of cookies to keep (oldest removed first)",
+      "default": 200
+    }
+  ]
+}

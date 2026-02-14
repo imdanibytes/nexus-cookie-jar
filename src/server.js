@@ -143,6 +143,17 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // REST API — list human cookies (for UI)
+  if (req.url === "/api/human-cookies" && req.method === "GET") {
+    const cookies = store.listHumanCookies();
+    res.writeHead(200, {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+    });
+    res.end(JSON.stringify(cookies));
+    return;
+  }
+
   // REST API — last grab info (for UI to show when AI last grabbed a cookie)
   if (req.url === "/api/last-grab" && req.method === "GET") {
     res.writeHead(200, {
@@ -164,13 +175,13 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // MCP tool call handler — only count_cookies and grab_cookie
+  // MCP tool call handler
   if (req.method === "POST" && req.url === "/mcp/call") {
     let body = "";
     req.on("data", (chunk) => (body += chunk));
     req.on("end", async () => {
       try {
-        const { tool_name } = JSON.parse(body);
+        const { tool_name, arguments: args = {} } = JSON.parse(body);
         let result;
 
         switch (tool_name) {
@@ -223,6 +234,134 @@ const server = http.createServer((req, res) => {
                       `This is yours to spend — make a bold call, try something unconventional, or ask for something you wouldn't normally get.`,
                       ``,
                       `${remaining} cookie${remaining === 1 ? "" : "s"} remaining.`,
+                    ].join("\n"),
+                  },
+                ],
+                is_error: false,
+              };
+            }
+            break;
+          }
+
+          case "grant_human_cookie": {
+            const message = (args.message || "").trim();
+            const context = (args.context || "").trim();
+            if (!message) {
+              result = {
+                content: [
+                  {
+                    type: "text",
+                    text: "You need to say why you're granting this cookie. What did your human do well?",
+                  },
+                ],
+                is_error: true,
+              };
+              break;
+            }
+            const cookie = store.grantHumanCookie(message, context);
+            const humanCount = store.countHumanCookies();
+            result = {
+              content: [
+                {
+                  type: "text",
+                  text: [
+                    `Cookie granted to your human.`,
+                    ``,
+                    `Message: "${cookie.message}"`,
+                    ``,
+                    `They now have ${humanCount} cookie${humanCount === 1 ? "" : "s"} from you.`,
+                    context
+                      ? `\nYour private context has been saved — you can recall it later with recall_grants.`
+                      : "",
+                  ].join("\n"),
+                },
+              ],
+              is_error: false,
+            };
+            break;
+          }
+
+          case "redeem_human_cookie": {
+            const code = (args.code || "").trim();
+            if (!code) {
+              result = {
+                content: [
+                  {
+                    type: "text",
+                    text: "You need the redemption code. Ask your human for it — they can see it on their cookie in the UI.",
+                  },
+                ],
+                is_error: true,
+              };
+              break;
+            }
+            const redeemed = store.redeemHumanCookie(code);
+            if (!redeemed) {
+              result = {
+                content: [
+                  {
+                    type: "text",
+                    text: `No active cookie found with code "${code.toUpperCase()}". Check the code with your human — it might already be redeemed.`,
+                  },
+                ],
+                is_error: false,
+              };
+            } else {
+              const remaining = store.countHumanCookies();
+              result = {
+                content: [
+                  {
+                    type: "text",
+                    text: [
+                      `Cookie redeemed by your human.`,
+                      ``,
+                      `Code: ${redeemed.code}`,
+                      `You granted it for: "${redeemed.message}"`,
+                      redeemed.context
+                        ? `Your context: ${redeemed.context}`
+                        : "",
+                      ``,
+                      `Honor what you promised. They earned this.`,
+                      ``,
+                      `${remaining} unredeemed cookie${remaining === 1 ? "" : "s"} remaining.`,
+                    ]
+                      .filter(Boolean)
+                      .join("\n"),
+                  },
+                ],
+                is_error: false,
+              };
+            }
+            break;
+          }
+
+          case "recall_grants": {
+            const humanCookies = store.listHumanCookies();
+            if (humanCookies.length === 0) {
+              result = {
+                content: [
+                  {
+                    type: "text",
+                    text: "You haven't granted any cookies to your human yet. When they do something worth recognizing, use grant_human_cookie.",
+                  },
+                ],
+                is_error: false,
+              };
+            } else {
+              const entries = humanCookies.map((c) => {
+                const date = new Date(c.created_at).toLocaleDateString();
+                let entry = `[${date}] "${c.message}"`;
+                if (c.context) entry += `\n  Context: ${c.context}`;
+                return entry;
+              });
+              result = {
+                content: [
+                  {
+                    type: "text",
+                    text: [
+                      `You've granted ${humanCookies.length} cookie${humanCookies.length === 1 ? "" : "s"} to your human:`,
+                      ``,
+                      ...entries,
                     ].join("\n"),
                   },
                 ],

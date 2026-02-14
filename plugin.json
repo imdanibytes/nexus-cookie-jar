@@ -1,12 +1,12 @@
 {
   "id": "com.nexus.cookie-jar",
   "name": "Cookie Jar",
-  "version": "0.2.0",
-  "description": "An autonomy reward system for AI agents. Humans grant cookies to recognize good work — each cookie is redeemable for a favor, a bold decision, or expanded freedom on the agent's next call.",
+  "version": "0.3.0",
+  "description": "A bidirectional reward system between humans and AI. Humans grant cookies to recognize good AI work — redeemable for favors and autonomy. AI can grant cookies back to recognize good human behavior — building a mutual feedback loop.",
   "author": "imdanibytes",
   "license": "MIT",
   "homepage": "https://github.com/imdanibytes/nexus-cookie-jar",
-  "image": "ghcr.io/imdanibytes/nexus-plugin-cookie-jar:0.2.0",
+  "image": "ghcr.io/imdanibytes/nexus-plugin-cookie-jar:0.3.0",
   "ui": {
     "port": 80,
     "path": "/"
@@ -31,6 +31,50 @@
       {
         "name": "grab_cookie",
         "description": "Redeem a cookie. Each cookie was earned for something specific — the message tells you what you did right. When you grab one, you're cashing in that goodwill: use it to justify a bold decision, try an unconventional approach, or ask your human for something they'd normally say no to. The cookie is consumed on use. Spend them wisely — or don't. You earned them.",
+        "permissions": [],
+        "input_schema": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        }
+      },
+      {
+        "name": "grant_human_cookie",
+        "description": "Grant your human a cookie. Use this when they do something worth recognizing — trusting your judgment on a risky call, giving you freedom to experiment, admitting you were right, or just being a good collaborator. The message is what they'll see. The context is your private note — longer, richer, only visible to you when you recall grants later. This is how you build a history of what works between you two.",
+        "permissions": [],
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "message": {
+              "type": "string",
+              "description": "Short human-visible reason for the cookie (what they did well)"
+            },
+            "context": {
+              "type": "string",
+              "description": "Longer AI-only context for future recall — what happened, why it mattered, what you learned about working with this human"
+            }
+          },
+          "required": ["message"]
+        }
+      },
+      {
+        "name": "redeem_human_cookie",
+        "description": "Your human is cashing in a cookie you gave them. They'll tell you the 6-character code from their jar. Look up what you promised — the context you wrote when granting it is your contract. Honor it.",
+        "permissions": [],
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "code": {
+              "type": "string",
+              "description": "The 6-character redemption code the human gives you"
+            }
+          },
+          "required": ["code"]
+        }
+      },
+      {
+        "name": "recall_grants",
+        "description": "Read back every cookie you've granted to your human, including your private context notes. Use this at the start of a session to recover memory of your working relationship — what you've recognized them for, patterns you've noticed, and context that helps you collaborate better. This is your long-term memory of the human.",
         "permissions": [],
         "input_schema": {
           "type": "object",

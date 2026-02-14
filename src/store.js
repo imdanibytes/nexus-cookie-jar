@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 
 const DATA_FILE = path.join(__dirname, "data", "cookies.json");
+const HUMAN_DATA_FILE = path.join(__dirname, "data", "human-cookies.json");
 
 function load() {
   try {
@@ -57,10 +58,70 @@ function trimToMax(max) {
   }
 }
 
+// ── Human Cookie Jar (AI → Human) ──
+
+function loadHuman() {
+  try {
+    const raw = fs.readFileSync(HUMAN_DATA_FILE, "utf8");
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+}
+
+function saveHuman(cookies) {
+  fs.mkdirSync(path.dirname(HUMAN_DATA_FILE), { recursive: true });
+  fs.writeFileSync(HUMAN_DATA_FILE, JSON.stringify(cookies, null, 2));
+}
+
+function generateCode() {
+  return crypto.randomUUID().replace(/-/g, "").slice(0, 6).toUpperCase();
+}
+
+function grantHumanCookie(message, context) {
+  const cookies = loadHuman();
+  const cookie = {
+    id: crypto.randomUUID(),
+    message,
+    context,
+    code: generateCode(),
+    created_at: new Date().toISOString(),
+    redeemed: false,
+  };
+  cookies.push(cookie);
+  saveHuman(cookies);
+  return cookie;
+}
+
+/** Redeem a human cookie by its code. Returns the cookie with full context, or null. */
+function redeemHumanCookie(code) {
+  const cookies = loadHuman();
+  const idx = cookies.findIndex(
+    (c) => c.code === code.toUpperCase() && !c.redeemed
+  );
+  if (idx === -1) return null;
+  cookies[idx].redeemed = true;
+  cookies[idx].redeemed_at = new Date().toISOString();
+  saveHuman(cookies);
+  return cookies[idx];
+}
+
+function listHumanCookies() {
+  return loadHuman();
+}
+
+function countHumanCookies() {
+  return loadHuman().filter((c) => !c.redeemed).length;
+}
+
 module.exports = {
   addCookie,
   grabCookie,
   listCookies,
   countCookies,
   trimToMax,
+  grantHumanCookie,
+  redeemHumanCookie,
+  listHumanCookies,
+  countHumanCookies,
 };

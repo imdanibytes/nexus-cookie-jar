@@ -1,8 +1,9 @@
 const fs = require("fs");
 const path = require("path");
 
-const DATA_FILE = path.join(__dirname, "data", "cookies.json");
-const HUMAN_DATA_FILE = path.join(__dirname, "data", "human-cookies.json");
+const DATA_DIR = process.env.NEXUS_DATA_DIR || path.join(__dirname, "data");
+const DATA_FILE = path.join(DATA_DIR, "cookies.json");
+const HUMAN_DATA_FILE = path.join(DATA_DIR, "human-cookies.json");
 
 function load() {
   try {

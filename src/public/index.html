@@ -49,11 +49,8 @@
       position: relative;
       width: 140px;
       height: 160px;
-      cursor: pointer;
-      transition: transform 0.15s ease;
+      cursor: default;
     }
-    .jar:hover { transform: scale(1.03); }
-    .jar:active { transform: scale(0.97); }
     .jar.shake {
       animation: jar-shake 0.5s ease;
     }
@@ -125,55 +122,46 @@
       z-index: 1;
       pointer-events: none;
     }
-    .jar-hint {
-      margin-top: 0.75rem;
-      font-size: 0.6875rem;
-      color: var(--color-nx-text-ghost);
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-    }
 
-    /* ── Fortune Display ── */
-    .fortune {
-      min-height: 80px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
+    /* ── Last Grab Banner ── */
+    .last-grab {
       margin-bottom: 1.5rem;
-    }
-    .fortune-card {
-      background: var(--color-nx-surface);
-      border: 1px solid var(--color-nx-border);
+      padding: 0.75rem 1rem;
+      background: var(--color-nx-warning-muted);
+      border: 1px solid color-mix(in srgb, var(--color-nx-warning) 30%, transparent);
       border-radius: var(--radius-card);
-      padding: 1.25rem 1.5rem;
-      width: 100%;
-      opacity: 0;
-      transform: translateY(8px);
-      animation: fortune-in 0.4s ease forwards;
+      font-size: 0.75rem;
+      color: var(--color-nx-warning);
     }
-    @keyframes fortune-in {
-      to { opacity: 1; transform: translateY(0); }
+    .last-grab-label {
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-size: 0.625rem;
+      margin-bottom: 0.25rem;
     }
-    .fortune-text {
-      font-size: 1rem;
-      line-height: 1.5;
-      font-weight: 500;
+    .last-grab-message {
+      color: var(--color-nx-text-secondary);
+      font-size: 0.8125rem;
     }
-    .fortune-meta {
-      margin-top: 0.5rem;
-      font-size: 0.6875rem;
-      color: var(--color-nx-text-muted);
-    }
-    .fortune-empty {
+    .last-grab-time {
+      margin-top: 0.25rem;
+      font-family: var(--font-mono);
+      font-size: 0.625rem;
       color: var(--color-nx-text-ghost);
-      font-size: 0.875rem;
-      font-style: italic;
     }
 
-    /* ── Add Cookie ── */
+    /* ── Grant Cookie ── */
     .add-section {
       margin-bottom: 1.5rem;
+    }
+    .add-label {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--color-nx-text-muted);
+      margin-bottom: 0.5rem;
     }
     .add-form {
       display: flex;
@@ -328,11 +316,11 @@
   <div class="app">
     <div class="header">
       <h1>🍪 <span class="jar-name" id="jar-name">Cookie Jar</span></h1>
-      <p class="subtitle">Save your wins. Pull one out when you need it.</p>
+      <p class="subtitle">Reward your AI. They can redeem cookies for favors.</p>
     </div>
 
     <div class="jar-section">
-      <div class="jar" id="jar" title="Click to pull a random cookie">
+      <div class="jar" id="jar">
         <div class="jar-lid">
           <div class="jar-lid-knob"></div>
         </div>
@@ -341,34 +329,34 @@
           <div class="jar-count" id="jar-count">0</div>
         </div>
       </div>
-      <div class="jar-hint">tap the jar for a random cookie</div>
     </div>
 
-    <div class="fortune" id="fortune"></div>
+    <div id="last-grab-container"></div>
 
     <div class="add-section">
+      <div class="add-label">Grant a cookie</div>
       <form class="add-form" id="add-form">
         <input
           type="text"
           class="add-input"
           id="add-input"
-          placeholder="Add a win, thought, or reminder..."
+          placeholder="What did they do well?"
           maxlength="280"
           autocomplete="off"
         />
-        <button type="submit" class="add-btn" id="add-btn">Add</button>
+        <button type="submit" class="add-btn" id="add-btn">Grant</button>
       </form>
       <div class="categories" id="categories">
-        <button class="cat-btn active" data-cat="win">🏆 Win</button>
-        <button class="cat-btn" data-cat="motivation">🔥 Motivation</button>
-        <button class="cat-btn" data-cat="gratitude">💜 Gratitude</button>
-        <button class="cat-btn" data-cat="reminder">📌 Reminder</button>
+        <button class="cat-btn active" data-cat="win">🏆 Good call</button>
+        <button class="cat-btn" data-cat="motivation">🔥 Went above</button>
+        <button class="cat-btn" data-cat="gratitude">💜 Thank you</button>
+        <button class="cat-btn" data-cat="reminder">📌 Was right</button>
       </div>
     </div>
 
     <div class="list-section" id="list-section" style="display:none">
       <button class="list-toggle" id="list-toggle">
-        <span>All Cookies</span>
+        <span>Cookies in Jar</span>
         <span class="chevron" id="chevron">▼</span>
       </button>
       <div class="cookie-list" id="cookie-list" style="display:none"></div>
@@ -394,7 +382,7 @@
     const jarFill = document.getElementById('jar-fill');
     const jarCount = document.getElementById('jar-count');
     const jarNameEl = document.getElementById('jar-name');
-    const fortuneEl = document.getElementById('fortune');
+    const lastGrabContainer = document.getElementById('last-grab-container');
     const addForm = document.getElementById('add-form');
     const addInput = document.getElementById('add-input');
     const addBtn = document.getElementById('add-btn');
@@ -424,9 +412,14 @@
       return cookie;
     }
 
-    async function getRandomCookie() {
-      const res = await fetch('/api/cookies/random');
-      return await res.json();
+    async function fetchLastGrab() {
+      try {
+        const res = await fetch('/api/last-grab');
+        const data = await res.json();
+        if (data && data.cookie) {
+          showLastGrab(data);
+        }
+      } catch {}
     }
 
     // ── UI Updates ──
@@ -434,7 +427,6 @@
       const count = cookies.length;
       jarCount.textContent = count;
 
-      // Fill level: 0% at 0 cookies, 90% at 50+ cookies
       const pct = Math.min(count / 50, 1) * 90;
       jarFill.style.height = `${pct}%`;
 
@@ -453,17 +445,27 @@
       `).join('');
     }
 
-    function showFortune(cookie) {
-      if (!cookie) {
-        fortuneEl.innerHTML = '<div class="fortune-empty">The jar is empty — add your first cookie!</div>';
-        return;
-      }
-      fortuneEl.innerHTML = `
-        <div class="fortune-card">
-          <div class="fortune-text">${CATEGORY_EMOJI[cookie.category] || ''} ${escapeHtml(cookie.message)}</div>
-          <div class="fortune-meta">${cookie.category} · ${new Date(cookie.created_at).toLocaleDateString()}</div>
+    function showLastGrab(data) {
+      const emoji = CATEGORY_EMOJI[data.cookie.category] || '';
+      const timeAgo = formatTimeAgo(data.grabbed_at);
+      lastGrabContainer.innerHTML = `
+        <div class="last-grab">
+          <div class="last-grab-label">Last redeemed</div>
+          <div class="last-grab-message">${emoji} ${escapeHtml(data.cookie.message)}</div>
+          <div class="last-grab-time">${timeAgo}</div>
         </div>
       `;
+    }
+
+    function formatTimeAgo(iso) {
+      const seconds = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+      if (seconds < 60) return 'just now';
+      const minutes = Math.floor(seconds / 60);
+      if (minutes < 60) return `${minutes}m ago`;
+      const hours = Math.floor(minutes / 60);
+      if (hours < 24) return `${hours}h ago`;
+      const days = Math.floor(hours / 24);
+      return `${days}d ago`;
     }
 
     function escapeHtml(text) {
@@ -473,19 +475,6 @@
     }
 
     // ── Event Handlers ──
-    jarEl.addEventListener('click', async () => {
-      jarEl.classList.remove('shake');
-      void jarEl.offsetWidth; // force reflow
-      jarEl.classList.add('shake');
-
-      if (cookies.length === 0) {
-        showFortune(null);
-        return;
-      }
-      const cookie = await getRandomCookie();
-      showFortune(cookie);
-    });
-
     addForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const msg = addInput.value.trim();
@@ -493,9 +482,12 @@
 
       addBtn.disabled = true;
       try {
-        const cookie = await addCookie(msg, selectedCategory);
+        await addCookie(msg, selectedCategory);
         addInput.value = '';
-        showFortune(cookie);
+        // Shake the jar to show it was added
+        jarEl.classList.remove('shake');
+        void jarEl.offsetWidth;
+        jarEl.classList.add('shake');
       } finally {
         addBtn.disabled = false;
         addInput.focus();
@@ -520,7 +512,6 @@
     // ── Init ──
     async function init() {
       try {
-        // Load settings
         const configRes = await fetch('/api/config');
         const config = await configRes.json();
 
@@ -536,8 +527,8 @@
           }
         } catch (_) {}
 
-        // Load cookies
         await fetchCookies();
+        await fetchLastGrab();
 
         statusEl.innerHTML = `
           <div class="status-bar">

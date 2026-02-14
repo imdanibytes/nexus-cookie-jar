@@ -30,10 +30,14 @@ function addCookie(message, category = "win") {
   return cookie;
 }
 
-function getRandomCookie() {
+/** Pull a random cookie from the jar and remove it. Returns null if empty. */
+function grabCookie() {
   const cookies = load();
   if (cookies.length === 0) return null;
-  return cookies[Math.floor(Math.random() * cookies.length)];
+  const idx = Math.floor(Math.random() * cookies.length);
+  const [cookie] = cookies.splice(idx, 1);
+  save(cookies);
+  return cookie;
 }
 
 function listCookies(category) {
@@ -46,10 +50,6 @@ function countCookies() {
   return load().length;
 }
 
-function clearJar() {
-  save([]);
-}
-
 function trimToMax(max) {
   const cookies = load();
   if (cookies.length > max) {
@@ -59,9 +59,8 @@ function trimToMax(max) {
 
 module.exports = {
   addCookie,
-  getRandomCookie,
+  grabCookie,
   listCookies,
   countCookies,
-  clearJar,
   trimToMax,
 };

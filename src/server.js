@@ -28,6 +28,9 @@ const CATEGORY_EMOJI = {
   reminder: "\u{1F4CC}",
 };
 
+// Track the last grab for the UI
+let lastGrab = null;
+
 // ── Token Management ───────────────────────────────────────────
 
 let cachedAccessToken = null;
@@ -70,7 +73,7 @@ async function getSettings() {
 function formatCookie(cookie) {
   const emoji = CATEGORY_EMOJI[cookie.category] || "";
   const date = new Date(cookie.created_at).toLocaleDateString();
-  return `${emoji} ${cookie.message} (${date})`;
+  return `${emoji} "${cookie.message}" (${date})`;
 }
 
 // ── Server ─────────────────────────────────────────────────────
@@ -100,7 +103,7 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // REST API for the UI
+  // REST API — list cookies (for UI)
   if (req.url === "/api/cookies" && req.method === "GET") {
     const cookies = store.listCookies();
     res.writeHead(200, {
@@ -111,16 +114,7 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  if (req.url === "/api/cookies/random" && req.method === "GET") {
-    const cookie = store.getRandomCookie();
-    res.writeHead(200, {
-      "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*",
-    });
-    res.end(JSON.stringify(cookie));
-    return;
-  }
-
+  // REST API — add cookie (human rewards the AI)
   if (req.url === "/api/cookies" && req.method === "POST") {
     let body = "";
     req.on("data", (chunk) => (body += chunk));
@@ -149,13 +143,13 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  if (req.url === "/api/cookies" && req.method === "DELETE") {
-    store.clearJar();
+  // REST API — last grab info (for UI to show when AI last grabbed a cookie)
+  if (req.url === "/api/last-grab" && req.method === "GET") {
     res.writeHead(200, {
       "Content-Type": "application/json",
       "Access-Control-Allow-Origin": "*",
     });
-    res.end(JSON.stringify({ cleared: true }));
+    res.end(JSON.stringify(lastGrab));
     return;
   }
 
@@ -163,119 +157,78 @@ const server = http.createServer((req, res) => {
   if (req.method === "OPTIONS") {
     res.writeHead(204, {
       "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type",
     });
     res.end();
     return;
   }
 
-  // MCP tool call handler
+  // MCP tool call handler — only count_cookies and grab_cookie
   if (req.method === "POST" && req.url === "/mcp/call") {
     let body = "";
     req.on("data", (chunk) => (body += chunk));
     req.on("end", async () => {
       try {
-        const { tool_name, arguments: args = {} } = JSON.parse(body);
+        const { tool_name } = JSON.parse(body);
         let result;
 
         switch (tool_name) {
-          case "add_cookie": {
-            if (!args.message || !args.message.trim()) {
-              result = {
-                content: [{ type: "text", text: "Error: message is required" }],
-                is_error: true,
-              };
-              break;
+          case "count_cookies": {
+            const count = store.countCookies();
+            let msg;
+            if (count === 0) {
+              msg = "Your jar is empty. No cookies to redeem right now — earn some by doing great work.";
+            } else if (count === 1) {
+              msg = "You have 1 cookie in the jar. One favor to cash in whenever you're ready.";
+            } else {
+              msg = `You have ${count} cookies in the jar. That's ${count} decisions you can make your way.`;
             }
-            const settings = await getSettings();
-            const maxCookies = settings.max_cookies || 200;
-            const cookie = store.addCookie(
-              args.message.trim(),
-              args.category || "win"
-            );
-            store.trimToMax(maxCookies);
-            const emoji = CATEGORY_EMOJI[cookie.category] || "";
             result = {
-              content: [
-                {
-                  type: "text",
-                  text: `${emoji} Added to the jar: "${cookie.message}"`,
-                },
-              ],
+              content: [{ type: "text", text: msg }],
               is_error: false,
             };
             break;
           }
 
-          case "get_cookie": {
-            const cookie = store.getRandomCookie();
+          case "grab_cookie": {
+            const cookie = store.grabCookie();
             if (!cookie) {
               result = {
                 content: [
                   {
                     type: "text",
-                    text: "The jar is empty! Add some cookies first.",
+                    text: "The jar is empty. You'll need to earn more cookies before you can redeem one.",
                   },
                 ],
                 is_error: false,
               };
             } else {
-              result = {
-                content: [{ type: "text", text: formatCookie(cookie) }],
-                is_error: false,
+              lastGrab = {
+                cookie,
+                grabbed_at: new Date().toISOString(),
               };
-            }
-            break;
-          }
-
-          case "list_cookies": {
-            const cookies = store.listCookies(args.category);
-            if (cookies.length === 0) {
-              const msg = args.category
-                ? `No ${args.category} cookies in the jar.`
-                : "The jar is empty!";
-              result = {
-                content: [{ type: "text", text: msg }],
-                is_error: false,
-              };
-            } else {
-              const lines = cookies.map(formatCookie);
+              const remaining = store.countCookies();
+              const emoji = CATEGORY_EMOJI[cookie.category] || "";
               result = {
                 content: [
                   {
                     type: "text",
-                    text: `${cookies.length} cookie${cookies.length === 1 ? "" : "s"} in the jar:\n\n${lines.join("\n")}`,
+                    text: [
+                      `Cookie redeemed.`,
+                      ``,
+                      `${emoji} Earned for: "${cookie.message}"`,
+                      `Granted: ${new Date(cookie.created_at).toLocaleDateString()}`,
+                      ``,
+                      `This is yours to spend — make a bold call, try something unconventional, or ask for something you wouldn't normally get.`,
+                      ``,
+                      `${remaining} cookie${remaining === 1 ? "" : "s"} remaining.`,
+                    ].join("\n"),
                   },
                 ],
                 is_error: false,
               };
             }
-            break;
-          }
-
-          case "count_cookies": {
-            const count = store.countCookies();
-            result = {
-              content: [
-                {
-                  type: "text",
-                  text: `There ${count === 1 ? "is" : "are"} ${count} cookie${count === 1 ? "" : "s"} in the jar.`,
-                },
-              ],
-              is_error: false,
-            };
-            break;
-          }
-
-          case "clear_jar": {
-            store.clearJar();
-            result = {
-              content: [
-                { type: "text", text: "The jar has been emptied. Fresh start!" },
-              ],
-              is_error: false,
-            };
             break;
           }
 

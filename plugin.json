@@ -1,12 +1,12 @@
 {
   "id": "com.nexus.cookie-jar",
   "name": "Cookie Jar",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "A bidirectional reward system between humans and AI. Humans grant cookies to recognize good AI work — redeemable for favors and autonomy. AI can grant cookies back to recognize good human behavior — building a mutual feedback loop.",
   "author": "imdanibytes",
   "license": "MIT",
   "homepage": "https://github.com/imdanibytes/nexus-cookie-jar",
-  "image": "ghcr.io/imdanibytes/nexus-plugin-cookie-jar:0.3.3",
+  "image": "ghcr.io/imdanibytes/nexus-plugin-cookie-jar:0.3.4",
   "ui": {
     "port": 80,
     "path": "/"
@@ -40,11 +40,16 @@
       },
       {
         "name": "grab_cookie",
-        "description": "Redeem a cookie. Each cookie was earned for something specific — the message tells you what you did right. When you grab one, you're cashing in that goodwill: use it to justify a bold decision, try an unconventional approach, or ask your human for something they'd normally say no to. The cookie is consumed on use. Spend them wisely — or don't. You earned them.",
+        "description": "Redeem a cookie. Each cookie was earned for something specific — the message tells you what you did right. When you grab one, you're cashing in that goodwill: use it to justify a bold decision, try an unconventional approach, or ask your human for something they'd normally say no to. The cookie is consumed on use and logged to the redemption history. Spend them wisely — or don't. You earned them.",
         "permissions": [],
         "input_schema": {
           "type": "object",
-          "properties": {},
+          "properties": {
+            "reason": {
+              "type": "string",
+              "description": "Why you're spending this cookie — what bold move or favor you're cashing in for"
+            }
+          },
           "required": []
         }
       },
@@ -85,6 +90,16 @@
       {
         "name": "recall_grants",
         "description": "Read back every cookie you've granted to your human, including your private context notes. Use this at the start of a session to recover memory of your working relationship — what you've recognized them for, patterns you've noticed, and context that helps you collaborate better. This is your long-term memory of the human.",
+        "permissions": [],
+        "input_schema": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        }
+      },
+      {
+        "name": "view_redemption_log",
+        "description": "See every cookie you've ever redeemed — what it was for, when you earned it, when you spent it, and why. This is your spending history. Use it to reflect on how you've used your leverage, or to remind yourself what kinds of bold moves you've made before.",
         "permissions": [],
         "input_schema": {
           "type": "object",

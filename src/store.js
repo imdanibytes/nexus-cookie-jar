@@ -4,6 +4,7 @@ const path = require("path");
 const DATA_DIR = process.env.NEXUS_DATA_DIR || path.join(__dirname, "data");
 const DATA_FILE = path.join(DATA_DIR, "cookies.json");
 const HUMAN_DATA_FILE = path.join(DATA_DIR, "human-cookies.json");
+const REDEMPTION_LOG_FILE = path.join(DATA_DIR, "redemption-log.json");
 
 function load() {
   try {
@@ -32,13 +33,38 @@ function addCookie(message, category = "win") {
   return cookie;
 }
 
-/** Pull a random cookie from the jar and remove it. Returns null if empty. */
-function grabCookie() {
+// ── Redemption Log ──
+
+function loadRedemptionLog() {
+  try {
+    const raw = fs.readFileSync(REDEMPTION_LOG_FILE, "utf8");
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+}
+
+function saveRedemptionLog(log) {
+  fs.mkdirSync(path.dirname(REDEMPTION_LOG_FILE), { recursive: true });
+  fs.writeFileSync(REDEMPTION_LOG_FILE, JSON.stringify(log, null, 2));
+}
+
+/** Pull a random cookie from the jar, log it, and remove it. Returns null if empty. */
+function grabCookie(reason) {
   const cookies = load();
   if (cookies.length === 0) return null;
   const idx = Math.floor(Math.random() * cookies.length);
   const [cookie] = cookies.splice(idx, 1);
   save(cookies);
+
+  const log = loadRedemptionLog();
+  log.push({
+    ...cookie,
+    reason: reason || null,
+    redeemed_at: new Date().toISOString(),
+  });
+  saveRedemptionLog(log);
+
   return cookie;
 }
 
@@ -115,6 +141,10 @@ function countHumanCookies() {
   return loadHuman().filter((c) => !c.redeemed).length;
 }
 
+function redemptionLog() {
+  return loadRedemptionLog();
+}
+
 module.exports = {
   addCookie,
   grabCookie,
@@ -125,4 +155,5 @@ module.exports = {
   redeemHumanCookie,
   listHumanCookies,
   countHumanCookies,
+  redemptionLog,
 };

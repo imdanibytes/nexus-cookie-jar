@@ -238,7 +238,8 @@ const server = http.createServer((req, res) => {
           }
 
           case "grab_cookie": {
-            const cookie = store.grabCookie();
+            const reason = (args.reason || "").trim() || undefined;
+            const cookie = store.grabCookie(reason);
             if (!cookie) {
               result = {
                 content: [
@@ -395,6 +396,44 @@ const server = http.createServer((req, res) => {
                     type: "text",
                     text: [
                       `You've granted ${humanCookies.length} cookie${humanCookies.length === 1 ? "" : "s"} to your human:`,
+                      ``,
+                      ...entries,
+                    ].join("\n"),
+                  },
+                ],
+                is_error: false,
+              };
+            }
+            break;
+          }
+
+          case "view_redemption_log": {
+            const log = store.redemptionLog();
+            if (log.length === 0) {
+              result = {
+                content: [
+                  {
+                    type: "text",
+                    text: "No cookies have been redeemed yet. The log is empty.",
+                  },
+                ],
+                is_error: false,
+              };
+            } else {
+              const entries = log.map((c) => {
+                const emoji = CATEGORY_EMOJI[c.category] || "";
+                const earned = new Date(c.created_at).toLocaleDateString();
+                const spent = new Date(c.redeemed_at).toLocaleDateString();
+                let entry = `${emoji} "${c.message}" — earned ${earned}, spent ${spent}`;
+                if (c.reason) entry += `\n  Reason: ${c.reason}`;
+                return entry;
+              });
+              result = {
+                content: [
+                  {
+                    type: "text",
+                    text: [
+                      `${log.length} cookie${log.length === 1 ? "" : "s"} redeemed:`,
                       ``,
                       ...entries,
                     ].join("\n"),

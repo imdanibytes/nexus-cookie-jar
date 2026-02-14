@@ -118,7 +118,7 @@
     ]
   },
   "env": {},
-  "min_nexus_version": "0.3.0",
+  "min_nexus_version": "0.5.1",
   "settings": [
     {
       "key": "jar_name",

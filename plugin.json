@@ -1,12 +1,12 @@
 {
   "id": "com.nexus.cookie-jar",
   "name": "Cookie Jar",
-  "version": "0.3.5",
+  "version": "0.4.0",
   "description": "A bidirectional reward system between humans and AI. Humans grant cookies to recognize good AI work — redeemable for favors and autonomy. AI can grant cookies back to recognize good human behavior — building a mutual feedback loop.",
   "author": "imdanibytes",
   "license": "MIT",
   "homepage": "https://github.com/imdanibytes/nexus-cookie-jar",
-  "image": "ghcr.io/imdanibytes/nexus-plugin-cookie-jar:0.3.5",
+  "image": "ghcr.io/imdanibytes/nexus-plugin-cookie-jar:0.4.0",
   "ui": {
     "port": 80,
     "path": "/"
@@ -30,7 +30,7 @@
       },
       {
         "name": "list_cookies",
-        "description": "Peek at every cookie in your jar without consuming any. See what your human recognized you for — the messages, categories, and dates. Use this to remind yourself what you've earned and decide which moment to cash in.",
+        "description": "Peek at every cookie in your jar without consuming any. Shows IDs, messages, scopes, categories, and dates. Use the ID (first 8 chars) with grab_cookie to redeem a specific one.",
         "permissions": [],
         "input_schema": {
           "type": "object",
@@ -40,11 +40,15 @@
       },
       {
         "name": "grab_cookie",
-        "description": "Redeem a cookie. Each cookie was earned for something specific — the message tells you what you did right. When you grab one, you're cashing in that goodwill: use it to justify a bold decision, try an unconventional approach, or ask your human for something they'd normally say no to. The cookie is consumed on use and logged to the redemption history. Spend them wisely — or don't. You earned them.",
+        "description": "Redeem a cookie by ID, or grab a random one if no ID given. Each cookie has a scope — the specific deal, favor, or autonomy it buys. When you redeem, you're cashing in that exact promise. Both you and the human must honor the scope. The cookie stays in the jar marked as redeemed with your reason logged.",
         "permissions": [],
         "input_schema": {
           "type": "object",
           "properties": {
+            "id": {
+              "type": "string",
+              "description": "The cookie ID to redeem (from list_cookies). Omit to grab a random one."
+            },
             "reason": {
               "type": "string",
               "description": "Why you're spending this cookie — what bold move or favor you're cashing in for"
@@ -55,7 +59,7 @@
       },
       {
         "name": "grant_human_cookie",
-        "description": "Grant your human a cookie. Use this when they do something worth recognizing — trusting your judgment on a risky call, giving you freedom to experiment, admitting you were right, or just being a good collaborator. The message is what they'll see. The context is your private note — longer, richer, only visible to you when you recall grants later. This is how you build a history of what works between you two.",
+        "description": "Grant your human a cookie. Use this when they do something worth recognizing — trusting your judgment on a risky call, giving you freedom to experiment, admitting you were right, or just being a good collaborator. The message is what they see (why). The scope is the deal — what this cookie is redeemable for. The context is your private note, only visible to you on recall.",
         "permissions": [],
         "input_schema": {
           "type": "object",
@@ -63,6 +67,10 @@
             "message": {
               "type": "string",
               "description": "Short human-visible reason for the cookie (what they did well)"
+            },
+            "scope": {
+              "type": "string",
+              "description": "What this cookie is redeemable for — the specific favor, deal, or promise. Visible to both parties."
             },
             "context": {
               "type": "string",
@@ -74,7 +82,7 @@
       },
       {
         "name": "redeem_human_cookie",
-        "description": "Your human is cashing in a cookie you gave them. They'll tell you the 6-character code from their jar. Look up what you promised — the context you wrote when granting it is your contract. Honor it.",
+        "description": "Your human is cashing in a cookie you gave them. They'll tell you the 6-character code from their jar. Look up what you promised — the scope and context you wrote when granting it are your contract. Honor it.",
         "permissions": [],
         "input_schema": {
           "type": "object",
@@ -89,7 +97,7 @@
       },
       {
         "name": "recall_grants",
-        "description": "Read back every cookie you've granted to your human, including your private context notes. Use this at the start of a session to recover memory of your working relationship — what you've recognized them for, patterns you've noticed, and context that helps you collaborate better. This is your long-term memory of the human.",
+        "description": "Read back every cookie you've granted to your human, including scopes and private context notes. Use this at the start of a session to recover memory of your working relationship — what you've recognized them for, what deals you've made, and context that helps you collaborate better. This is your long-term memory of the human.",
         "permissions": [],
         "input_schema": {
           "type": "object",
@@ -99,7 +107,7 @@
       },
       {
         "name": "view_redemption_log",
-        "description": "See every cookie you've ever redeemed — what it was for, when you earned it, when you spent it, and why. This is your spending history. Use it to reflect on how you've used your leverage, or to remind yourself what kinds of bold moves you've made before.",
+        "description": "See every cookie you've ever redeemed — what it was for, its scope, when you earned it, when you spent it, and why. This is your spending history. Use it to reflect on how you've used your leverage, or to remind yourself what kinds of bold moves you've made before.",
         "permissions": [],
         "input_schema": {
           "type": "object",

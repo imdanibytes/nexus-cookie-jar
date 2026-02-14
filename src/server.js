@@ -120,7 +120,7 @@ const server = http.createServer((req, res) => {
     req.on("data", (chunk) => (body += chunk));
     req.on("end", async () => {
       try {
-        const { message, category } = JSON.parse(body);
+        const { message, category, scope } = JSON.parse(body);
         if (!message || !message.trim()) {
           res.writeHead(400, { "Content-Type": "application/json" });
           res.end(JSON.stringify({ error: "Message is required" }));
@@ -128,7 +128,7 @@ const server = http.createServer((req, res) => {
         }
         const settings = await getSettings();
         const maxCookies = settings.max_cookies || 200;
-        const cookie = store.addCookie(message.trim(), category || "win");
+        const cookie = store.addCookie(message.trim(), category || "win", scope ? scope.trim() : null);
         store.trimToMax(maxCookies);
         res.writeHead(201, {
           "Content-Type": "application/json",
@@ -218,7 +218,9 @@ const server = http.createServer((req, res) => {
               const lines = all.map((c) => {
                 const emoji = CATEGORY_EMOJI[c.category] || "";
                 const date = new Date(c.created_at).toLocaleDateString();
-                return `${emoji} "${c.message}" (${date})`;
+                let line = `${emoji} [${c.id.slice(0, 8)}] "${c.message}" (${date})`;
+                if (c.scope) line += `\n  Redeemable for: ${c.scope}`;
+                return line;
               });
               result = {
                 content: [
@@ -239,13 +241,16 @@ const server = http.createServer((req, res) => {
 
           case "grab_cookie": {
             const reason = (args.reason || "").trim() || undefined;
-            const cookie = store.grabCookie(reason);
+            const id = (args.id || "").trim() || undefined;
+            const cookie = store.grabCookie(reason, id);
             if (!cookie) {
               result = {
                 content: [
                   {
                     type: "text",
-                    text: "The jar is empty. You'll need to earn more cookies before you can redeem one.",
+                    text: id
+                      ? `No unredeemed cookie found with ID starting with "${id}". Use list_cookies to see available cookies.`
+                      : "The jar is empty. You'll need to earn more cookies before you can redeem one.",
                   },
                 ],
                 is_error: false,
@@ -265,12 +270,15 @@ const server = http.createServer((req, res) => {
                       `Cookie redeemed.`,
                       ``,
                       `${emoji} Earned for: "${cookie.message}"`,
+                      cookie.scope ? `Scope: ${cookie.scope}` : "",
                       `Granted: ${new Date(cookie.created_at).toLocaleDateString()}`,
                       ``,
                       `This is yours to spend — make a bold call, try something unconventional, or ask for something you wouldn't normally get.`,
                       ``,
                       `${remaining} cookie${remaining === 1 ? "" : "s"} remaining.`,
-                    ].join("\n"),
+                    ]
+                      .filter(Boolean)
+                      .join("\n"),
                   },
                 ],
                 is_error: false,
@@ -282,6 +290,7 @@ const server = http.createServer((req, res) => {
           case "grant_human_cookie": {
             const message = (args.message || "").trim();
             const context = (args.context || "").trim();
+            const scope = (args.scope || "").trim();
             if (!message) {
               result = {
                 content: [
@@ -294,7 +303,7 @@ const server = http.createServer((req, res) => {
               };
               break;
             }
-            const cookie = store.grantHumanCookie(message, context);
+            const cookie = store.grantHumanCookie(message, context, scope || null);
             const humanCount = store.countHumanCookies();
             result = {
               content: [
@@ -304,12 +313,15 @@ const server = http.createServer((req, res) => {
                     `Cookie granted to your human.`,
                     ``,
                     `Message: "${cookie.message}"`,
+                    scope ? `Scope: ${cookie.scope}` : "",
                     ``,
                     `They now have ${humanCount} cookie${humanCount === 1 ? "" : "s"} from you.`,
                     context
                       ? `\nYour private context has been saved — you can recall it later with recall_grants.`
                       : "",
-                  ].join("\n"),
+                  ]
+                    .filter(Boolean)
+                    .join("\n"),
                 },
               ],
               is_error: false,
@@ -353,6 +365,9 @@ const server = http.createServer((req, res) => {
                       ``,
                       `Code: ${redeemed.code}`,
                       `You granted it for: "${redeemed.message}"`,
+                      redeemed.scope
+                        ? `Scope: ${redeemed.scope}`
+                        : "",
                       redeemed.context
                         ? `Your context: ${redeemed.context}`
                         : "",
@@ -387,7 +402,9 @@ const server = http.createServer((req, res) => {
               const entries = humanCookies.map((c) => {
                 const date = new Date(c.created_at).toLocaleDateString();
                 let entry = `[${date}] "${c.message}"`;
+                if (c.scope) entry += `\n  Scope: ${c.scope}`;
                 if (c.context) entry += `\n  Context: ${c.context}`;
+                if (c.redeemed) entry += `\n  REDEEMED ${new Date(c.redeemed_at).toLocaleDateString()}`;
                 return entry;
               });
               result = {
@@ -425,6 +442,7 @@ const server = http.createServer((req, res) => {
                 const earned = new Date(c.created_at).toLocaleDateString();
                 const spent = new Date(c.redeemed_at).toLocaleDateString();
                 let entry = `${emoji} "${c.message}" — earned ${earned}, spent ${spent}`;
+                if (c.scope) entry += `\n  Scope: ${c.scope}`;
                 if (c.reason) entry += `\n  Reason: ${c.reason}`;
                 return entry;
               });

@@ -18,12 +18,13 @@ function save(cookies) {
   fs.writeFileSync(DATA_FILE, JSON.stringify(cookies, null, 2));
 }
 
-function addCookie(message, category = "win") {
+function addCookie(message, category = "win", scope = null) {
   const cookies = load();
   const cookie = {
     id: crypto.randomUUID(),
     message,
     category,
+    scope: scope || null,
     created_at: new Date().toISOString(),
   };
   cookies.push(cookie);
@@ -31,12 +32,20 @@ function addCookie(message, category = "win") {
   return cookie;
 }
 
-/** Mark a random unredeemed cookie as redeemed. Returns null if none available. */
-function grabCookie(reason) {
+/** Mark a cookie as redeemed. If id is given, redeem that one; otherwise pick randomly. */
+function grabCookie(reason, id) {
   const cookies = load();
   const available = cookies.filter((c) => !c.redeemed);
   if (available.length === 0) return null;
-  const pick = available[Math.floor(Math.random() * available.length)];
+
+  let pick;
+  if (id) {
+    pick = available.find((c) => c.id === id || c.id.startsWith(id));
+    if (!pick) return null;
+  } else {
+    pick = available[Math.floor(Math.random() * available.length)];
+  }
+
   const idx = cookies.findIndex((c) => c.id === pick.id);
   cookies[idx].redeemed = true;
   cookies[idx].redeemed_at = new Date().toISOString();
@@ -84,12 +93,13 @@ function generateCode() {
   return crypto.randomUUID().replace(/-/g, "").slice(0, 6).toUpperCase();
 }
 
-function grantHumanCookie(message, context) {
+function grantHumanCookie(message, context, scope = null) {
   const cookies = loadHuman();
   const cookie = {
     id: crypto.randomUUID(),
     message,
     context,
+    scope: scope || null,
     code: generateCode(),
     created_at: new Date().toISOString(),
     redeemed: false,

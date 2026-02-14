@@ -6,7 +6,7 @@
   "author": "Nexus Team",
   "license": "MIT",
   "homepage": "https://github.com/imdanibytes/nexus-cookie-jar",
-  "image": "nexus-plugin-cookie-jar:latest",
+  "image": "ghcr.io/imdanibytes/nexus-plugin-cookie-jar:0.1.0",
   "ui": {
     "port": 80,
     "path": "/"

@@ -1,78 +1,17 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "@nexus-dashboard/tokens/theme.css";
+@import "@nexus-dashboard/tokens/bridge.css";
 
-/* ── Nexus Design Tokens (fallbacks if theme.css hasn't loaded) ── */
+/* Scan nexus-ui component classes so Tailwind generates them */
+@source "../../node_modules/@imdanibytes/nexus-ui/dist";
+
+/* ── Cookie Jar Extras ── */
 
 @theme {
-  --color-nx-deep: #0C0E12;
-  --color-nx-base: #12141A;
-  --color-nx-surface: #1A1D25;
-  --color-nx-raised: #222631;
-  --color-nx-overlay: #2A2E3A;
-  --color-nx-wash: #323744;
-
-  --color-nx-accent: #2DD4A8;
-  --color-nx-accent-hover: #22B893;
-  --color-nx-accent-muted: oklch(0.72 0.15 168 / 0.15);
-  --color-nx-accent-subtle: oklch(0.72 0.15 168 / 0.08);
-
-  --color-nx-highlight: #F0AB3A;
-  --color-nx-highlight-muted: oklch(0.78 0.15 75 / 0.15);
-
-  --color-nx-text: #E8ECF2;
-  --color-nx-text-secondary: #9BA3B2;
-  --color-nx-text-muted: #848d9f;
-  --color-nx-text-ghost: #66728a;
-
-  --color-nx-border: #2A2E3A;
-  --color-nx-border-subtle: #222631;
-  --color-nx-border-strong: #3D4452;
-  --color-nx-border-accent: oklch(0.72 0.15 168 / 0.5);
-
-  --color-nx-success: #34D399;
-  --color-nx-success-muted: oklch(0.73 0.17 163 / 0.12);
-  --color-nx-warning: #FBBF24;
-  --color-nx-warning-muted: oklch(0.83 0.16 85 / 0.12);
-  --color-nx-error: #F87171;
-  --color-nx-error-muted: oklch(0.68 0.19 22 / 0.12);
-
-  --font-sans: "Geist", "Inter", system-ui, -apple-system, sans-serif;
-  --font-mono: "Geist Mono", "JetBrains Mono", "SF Mono", ui-monospace, monospace;
-
-  --radius-card: 10px;
-  --radius-button: 8px;
-
   --animate-fade-in: fade-in 0.2s ease-out;
   --animate-slide-up: slide-up 0.25s ease-out;
   --animate-jar-shake: jar-shake 0.5s ease;
-}
-
-/* ── shadcn Semantic Bridge ── */
-
-@theme inline {
-  --color-background: var(--color-nx-deep);
-  --color-foreground: var(--color-nx-text);
-  --color-card: var(--color-nx-surface);
-  --color-card-foreground: var(--color-nx-text);
-  --color-popover: var(--color-nx-surface);
-  --color-popover-foreground: var(--color-nx-text);
-  --color-primary: var(--color-nx-accent);
-  --color-primary-foreground: #0C0E12;
-  --color-secondary: var(--color-nx-raised);
-  --color-secondary-foreground: var(--color-nx-text);
-  --color-muted: var(--color-nx-raised);
-  --color-muted-foreground: var(--color-nx-text-secondary);
-  --color-accent: var(--color-nx-overlay);
-  --color-accent-foreground: var(--color-nx-text);
-  --color-destructive: var(--color-nx-error);
-  --color-destructive-foreground: var(--color-nx-text);
-  --color-border: var(--color-nx-border);
-  --color-input: var(--color-nx-border-strong);
-  --color-ring: var(--color-nx-accent);
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 10px;
-  --radius-xl: 14px;
 }
 
 /* ── Base Styles ── */

@@ -1,5 +1,4 @@
-import { cn } from "@/lib/utils.js";
-import { Badge } from "@/components/ui/badge.js";
+import { cn, Badge } from "@imdanibytes/nexus-ui";
 import type { HumanCookie } from "@/api/client.js";
 
 interface Props {

@@ -1,6 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { TooltipProvider } from "@/components/ui/tooltip.js";
+import { TooltipProvider } from "@imdanibytes/nexus-ui";
 import { App } from "./App.js";
 import "./styles/global.css";
 

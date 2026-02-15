@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils.js";
+import { cn } from "@imdanibytes/nexus-ui";
 import { CATEGORY_EMOJI, type LastGrab } from "@/api/client.js";
 
 interface Props {

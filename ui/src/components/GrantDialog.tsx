@@ -1,21 +1,21 @@
 import { useState, useCallback } from "react";
 import { Cookie as CookieIcon, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils.js";
 import {
-  CATEGORY_EMOJI,
-  CATEGORY_LABELS,
-  type Category,
-} from "@/api/client.js";
-import { Button } from "@/components/ui/button.js";
-import { Input } from "@/components/ui/input.js";
-import { Label } from "@/components/ui/label.js";
-import {
+  cn,
+  Button,
+  Input,
+  Label,
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog.js";
+} from "@imdanibytes/nexus-ui";
+import {
+  CATEGORY_EMOJI,
+  CATEGORY_LABELS,
+  type Category,
+} from "@/api/client.js";
 
 const CATEGORIES: Category[] = ["win", "motivation", "gratitude", "reminder"];
 

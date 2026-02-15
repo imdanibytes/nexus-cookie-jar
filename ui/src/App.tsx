@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { Cookie, Gift, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils.js";
+import { cn, ScrollArea } from "@imdanibytes/nexus-ui";
 import { useJar } from "@/hooks/useJar.js";
 import { JarHero } from "@/components/JarHero.js";
 import { CookieCard } from "@/components/CookieCard.js";
 import { HumanCookieCard } from "@/components/HumanCookieCard.js";
 import { GrantDialog } from "@/components/GrantDialog.js";
-import { ScrollArea } from "@/components/ui/scroll-area.js";
 
 type Tab = "cookies" | "granted";
 
@@ -16,8 +15,16 @@ const TABS: { id: Tab; label: string; icon: typeof Cookie }[] = [
 ];
 
 export function App() {
-  const { cookies, humanCookies, lastGrab, jarName, loading, shaking, grant } =
-    useJar();
+  const {
+    cookies,
+    humanCookies,
+    lastGrab,
+    jarName,
+    loading,
+    shaking,
+    language,
+    grant,
+  } = useJar();
   const [tab, setTab] = useState<Tab>("cookies");
 
   if (loading) {
@@ -39,6 +46,11 @@ export function App() {
         <div className="flex items-center gap-2">
           <span className="text-base">🍪</span>
           <h1 className="text-sm font-semibold">{jarName}</h1>
+          {language && language !== "en" && (
+            <span className="text-[10px] text-muted-foreground font-mono bg-nx-raised px-1.5 py-0.5 rounded">
+              {language}
+            </span>
+          )}
         </div>
         <GrantDialog onGrant={grant} />
       </header>

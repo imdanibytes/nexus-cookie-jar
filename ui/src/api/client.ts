@@ -84,15 +84,23 @@ export async function fetchLastGrab(): Promise<LastGrab | null> {
   return data?.cookie ? data : null;
 }
 
-export async function fetchJarName(): Promise<string> {
+export async function fetchJarName(
+  nexus?: import("@imdanibytes/nexus-sdk").NexusPlugin,
+): Promise<string> {
   try {
-    const config = await fetchConfig();
-    const res = await fetch(`${config.apiUrl}/api/v1/settings`, {
-      headers: { Authorization: `Bearer ${config.token}` },
-    });
-    if (res.ok) {
-      const settings = await res.json();
-      if (settings.jar_name) return settings.jar_name;
+    if (nexus) {
+      const settings = await nexus.getSettings();
+      const s = settings as Record<string, unknown>;
+      if (s.jar_name && typeof s.jar_name === "string") return s.jar_name;
+    } else {
+      const config = await fetchConfig();
+      const res = await fetch(`${config.apiUrl}/api/v1/settings`, {
+        headers: { Authorization: `Bearer ${config.token}` },
+      });
+      if (res.ok) {
+        const settings = await res.json();
+        if (settings.jar_name) return settings.jar_name;
+      }
     }
   } catch {}
   return "Cookie Jar";

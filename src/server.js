@@ -10,7 +10,7 @@ const NEXUS_API_URL =
 const NEXUS_HOST_URL =
   process.env.NEXUS_HOST_URL || "http://host.docker.internal:9600";
 
-const publicDir = path.join(__dirname, "public");
+const publicDir = process.env.PUBLIC_DIR || path.join(__dirname, "public");
 
 const MIME_TYPES = {
   ".html": "text/html",
@@ -485,25 +485,44 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // Serve index.html with NEXUS_API_URL templated in
-  if (req.url === "/" || req.url === "/index.html") {
-    const html = fs
-      .readFileSync(path.join(publicDir, "index.html"), "utf8")
-      .replace(/\{\{NEXUS_API_URL\}\}/g, NEXUS_API_URL);
-    res.writeHead(200, { "Content-Type": "text/html" });
-    res.end(html);
+  // Proxy Nexus theme CSS so the UI can load it without knowing the API URL
+  if (req.url === "/theme.css") {
+    fetch(`${NEXUS_HOST_URL}/api/v1/theme.css`)
+      .then(async (upstream) => {
+        if (!upstream.ok) throw new Error(`Theme fetch: ${upstream.status}`);
+        const css = await upstream.text();
+        res.writeHead(200, {
+          "Content-Type": "text/css",
+          "Cache-Control": "public, max-age=60",
+        });
+        res.end(css);
+      })
+      .catch(() => {
+        res.writeHead(204);
+        res.end();
+      });
     return;
   }
 
-  // Serve other static files
-  const fullPath = path.join(publicDir, req.url);
+  // Serve static files from public/ (Vite build output)
+  const urlPath = req.url.split("?")[0];
+  const fullPath = path.join(publicDir, urlPath);
   const ext = path.extname(fullPath);
   const contentType = MIME_TYPES[ext] || "application/octet-stream";
 
   fs.readFile(fullPath, (err, data) => {
     if (err) {
-      res.writeHead(404, { "Content-Type": "text/plain" });
-      res.end("Not Found");
+      // SPA fallback — serve index.html for unmatched routes
+      const indexPath = path.join(publicDir, "index.html");
+      fs.readFile(indexPath, (err2, html) => {
+        if (err2) {
+          res.writeHead(404, { "Content-Type": "text/plain" });
+          res.end("Not Found");
+          return;
+        }
+        res.writeHead(200, { "Content-Type": "text/html" });
+        res.end(html);
+      });
       return;
     }
     res.writeHead(200, { "Content-Type": contentType });

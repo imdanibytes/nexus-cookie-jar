@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@imdanibytes/nexus-sdk": "file:../packages/imdanibytes-nexus-sdk-0.8.0.tgz",
-    "@imdanibytes/nexus-ui": "file:../packages/imdanibytes-nexus-ui-0.1.0.tgz",
+    "@imdanibytes/nexus-ui": "^0.1.0",
     "@nexus-dashboard/tokens": "file:../packages/nexus-dashboard-tokens-0.1.0.tgz",
     "lucide-react": "^0.468.0",
     "react": "^19.0.0",

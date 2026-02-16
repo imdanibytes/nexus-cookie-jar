@@ -15,8 +15,8 @@ importers:
         specifier: file:../packages/imdanibytes-nexus-sdk-0.8.0.tgz
         version: file:../packages/imdanibytes-nexus-sdk-0.8.0.tgz
       '@imdanibytes/nexus-ui':
-        specifier: file:../packages/imdanibytes-nexus-ui-0.1.0.tgz
-        version: file:../packages/imdanibytes-nexus-ui-0.1.0.tgz(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(tailwindcss@4.1.18)
+        specifier: ^0.1.0
+        version: 0.1.0(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(tailwindcss@4.1.18)
       '@nexus-dashboard/tokens':
         specifier: file:../packages/nexus-dashboard-tokens-0.1.0.tgz
         version: file:../packages/nexus-dashboard-tokens-0.1.0.tgz
@@ -315,9 +315,8 @@ packages:
     resolution: {integrity: sha512-zU62tL7YfMNk/oJl0zpJPOvv2IcoG0+qCHHc3v4MXk7GzZKHX4WV8y4oMV1Jp1WcxtzxES3fABpRx6/KE2zKQA==, tarball: file:../packages/imdanibytes-nexus-sdk-0.8.0.tgz}
     version: 0.8.0
 
-  '@imdanibytes/nexus-ui@file:../packages/imdanibytes-nexus-ui-0.1.0.tgz':
-    resolution: {integrity: sha512-Cdh6YSyDqk7T6dDEMoxhoVQKf+IEpkntan9E4/6uXUO2KypejEqDYxDh9+xGQDENHMFod0Dr6x3eVmfCmmxgmA==, tarball: file:../packages/imdanibytes-nexus-ui-0.1.0.tgz}
-    version: 0.1.0
+  '@imdanibytes/nexus-ui@0.1.0':
+    resolution: {integrity: sha512-7LJTUbQ1IGTnzHd//YbjpSkoPl00jyGsfpE/9xPkeaNkhWPOyx1kGR7rXMoTqUZWJstH2s4B03arWOPyLkmg0g==}
     peerDependencies:
       react: ^18.0.0 || ^19.0.0
       react-dom: ^18.0.0 || ^19.0.0
@@ -1907,7 +1906,7 @@ snapshots:
 
   '@imdanibytes/nexus-sdk@file:../packages/imdanibytes-nexus-sdk-0.8.0.tgz': {}
 
-  '@imdanibytes/nexus-ui@file:../packages/imdanibytes-nexus-ui-0.1.0.tgz(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(tailwindcss@4.1.18)':
+  '@imdanibytes/nexus-ui@0.1.0(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(tailwindcss@4.1.18)':
     dependencies:
       '@nexus-dashboard/tokens': file:../packages/nexus-dashboard-tokens-0.1.0.tgz
       class-variance-authority: 0.7.1

@@ -19,6 +19,7 @@ const MIME_TYPES = {
   ".json": "application/json",
   ".png": "image/png",
   ".svg": "image/svg+xml",
+  ".woff2": "font/woff2",
 };
 
 const CATEGORY_EMOJI = {
@@ -482,25 +483,6 @@ const server = http.createServer((req, res) => {
         );
       }
     });
-    return;
-  }
-
-  // Proxy Nexus theme CSS so the UI can load it without knowing the API URL
-  if (req.url === "/theme.css") {
-    fetch(`${NEXUS_HOST_URL}/api/v1/theme.css`)
-      .then(async (upstream) => {
-        if (!upstream.ok) throw new Error(`Theme fetch: ${upstream.status}`);
-        const css = await upstream.text();
-        res.writeHead(200, {
-          "Content-Type": "text/css",
-          "Cache-Control": "public, max-age=60",
-        });
-        res.end(css);
-      })
-      .catch(() => {
-        res.writeHead(204);
-        res.end();
-      });
     return;
   }
 

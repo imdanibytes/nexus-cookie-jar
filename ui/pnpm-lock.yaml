@@ -4,22 +4,16 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-overrides:
-  '@nexus-dashboard/tokens': file:../packages/nexus-dashboard-tokens-0.1.0.tgz
-
 importers:
 
   .:
     dependencies:
       '@imdanibytes/nexus-sdk':
-        specifier: file:../packages/imdanibytes-nexus-sdk-0.8.0.tgz
-        version: file:../packages/imdanibytes-nexus-sdk-0.8.0.tgz
+        specifier: ^0.10.1
+        version: 0.10.1
       '@imdanibytes/nexus-ui':
-        specifier: ^0.1.0
-        version: 0.1.0(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(tailwindcss@4.1.18)
-      '@nexus-dashboard/tokens':
-        specifier: file:../packages/nexus-dashboard-tokens-0.1.0.tgz
-        version: file:../packages/nexus-dashboard-tokens-0.1.0.tgz
+        specifier: ^0.2.0
+        version: 0.2.0(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(tailwindcss@4.1.18)
       lucide-react:
         specifier: ^0.468.0
         version: 0.468.0(react@19.2.4)
@@ -311,12 +305,11 @@ packages:
   '@floating-ui/utils@0.2.10':
     resolution: {integrity: sha512-aGTxbpbg8/b5JfU1HXSrbH3wXZuLPJcNEcZQFMxLs3oSzgtVu6nFPkbbGGUvBcUjKV2YyB9Wxxabo+HEH9tcRQ==}
 
-  '@imdanibytes/nexus-sdk@file:../packages/imdanibytes-nexus-sdk-0.8.0.tgz':
-    resolution: {integrity: sha512-zU62tL7YfMNk/oJl0zpJPOvv2IcoG0+qCHHc3v4MXk7GzZKHX4WV8y4oMV1Jp1WcxtzxES3fABpRx6/KE2zKQA==, tarball: file:../packages/imdanibytes-nexus-sdk-0.8.0.tgz}
-    version: 0.8.0
+  '@imdanibytes/nexus-sdk@0.10.1':
+    resolution: {integrity: sha512-dcwZBnrm2yuRS4zxexYrM2jYPBbo+pFQ0V8LoxbsiDPc9dFnXNMiN5MEAmv0xtQWhvZCHRgd9AhekZVCMfkgQQ==}
 
-  '@imdanibytes/nexus-ui@0.1.0':
-    resolution: {integrity: sha512-7LJTUbQ1IGTnzHd//YbjpSkoPl00jyGsfpE/9xPkeaNkhWPOyx1kGR7rXMoTqUZWJstH2s4B03arWOPyLkmg0g==}
+  '@imdanibytes/nexus-ui@0.2.0':
+    resolution: {integrity: sha512-pMMhZWkk4hhHp2r+1xWWyBcNqKLVmyecYHvHVETaMAgvVCzph5i9JHgdASKWM3AndE9GBUVoAYwtfhqIiU2hLw==}
     peerDependencies:
       react: ^18.0.0 || ^19.0.0
       react-dom: ^18.0.0 || ^19.0.0
@@ -337,10 +330,6 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
-
-  '@nexus-dashboard/tokens@file:../packages/nexus-dashboard-tokens-0.1.0.tgz':
-    resolution: {integrity: sha512-EyKrkIWolkOj+3aAJakI9l6D8SMMRyeVJoa/XU5Efuu6tIHtH8LVaLpUraJy72Ek4q3syGqMDwR98Vs+ZO9f7A==, tarball: file:../packages/nexus-dashboard-tokens-0.1.0.tgz}
-    version: 0.1.0
 
   '@radix-ui/number@1.1.1':
     resolution: {integrity: sha512-MkKCwxlXTgz6CFoJx3pCwn07GKp36+aZyu/u2Ln2VrA5DcdyCZkASEDBTd8x5whTQQL5CiYf4prXKLcgQdv29g==}
@@ -1904,11 +1893,10 @@ snapshots:
 
   '@floating-ui/utils@0.2.10': {}
 
-  '@imdanibytes/nexus-sdk@file:../packages/imdanibytes-nexus-sdk-0.8.0.tgz': {}
+  '@imdanibytes/nexus-sdk@0.10.1': {}
 
-  '@imdanibytes/nexus-ui@0.1.0(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(tailwindcss@4.1.18)':
+  '@imdanibytes/nexus-ui@0.2.0(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(tailwindcss@4.1.18)':
     dependencies:
-      '@nexus-dashboard/tokens': file:../packages/nexus-dashboard-tokens-0.1.0.tgz
       class-variance-authority: 0.7.1
       clsx: 2.1.1
       cmdk: 1.1.1(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -1942,8 +1930,6 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
-
-  '@nexus-dashboard/tokens@file:../packages/nexus-dashboard-tokens-0.1.0.tgz': {}
 
   '@radix-ui/number@1.1.1': {}
 

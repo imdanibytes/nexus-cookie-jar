@@ -1,7 +1,4 @@
-@import "tailwindcss";
-@import "tw-animate-css";
-@import "@nexus-dashboard/tokens/theme.css";
-@import "@nexus-dashboard/tokens/bridge.css";
+@import "@imdanibytes/nexus-ui/styles";
 
 /* Scan nexus-ui component classes so Tailwind generates them */
 @source "../../node_modules/@imdanibytes/nexus-ui/dist";

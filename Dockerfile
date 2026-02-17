@@ -13,6 +13,9 @@ FROM node:20-alpine
 WORKDIR /app
 RUN mkdir -p /app/data
 
+COPY package.json ./
+RUN npm install --omit=dev
+
 COPY src/server.js src/store.js ./
 COPY --from=ui-build /app/ui/dist ./public/
 

@@ -1,16 +1,13 @@
-const http = require("http");
-const fs = require("fs");
-const path = require("path");
-const store = require("./store");
+import http from "node:http";
+import fs from "node:fs";
+import path from "node:path";
+import { NexusServer } from "@imdanibytes/nexus-sdk/server";
+import * as store from "./store.js";
 
 const PORT = 80;
-const NEXUS_PLUGIN_SECRET = process.env.NEXUS_PLUGIN_SECRET || "";
-const NEXUS_API_URL =
-  process.env.NEXUS_API_URL || "http://host.docker.internal:9600";
-const NEXUS_HOST_URL =
-  process.env.NEXUS_HOST_URL || "http://host.docker.internal:9600";
+const publicDir = process.env.PUBLIC_DIR || path.join(import.meta.dirname, "public");
 
-const publicDir = process.env.PUBLIC_DIR || path.join(__dirname, "public");
+const nexus = new NexusServer();
 
 const MIME_TYPES = {
   ".html": "text/html",
@@ -32,41 +29,11 @@ const CATEGORY_EMOJI = {
 // Track the last grab for the UI
 let lastGrab = null;
 
-// ── Token Management ───────────────────────────────────────────
-
-let cachedAccessToken = null;
-let tokenExpiresAt = 0;
-
-async function getAccessToken() {
-  if (cachedAccessToken && Date.now() < tokenExpiresAt - 30000) {
-    return cachedAccessToken;
-  }
-
-  const res = await fetch(`${NEXUS_HOST_URL}/api/v1/auth/token`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ secret: NEXUS_PLUGIN_SECRET }),
-  });
-
-  if (!res.ok) {
-    throw new Error(`Token exchange failed: ${res.status}`);
-  }
-
-  const data = await res.json();
-  cachedAccessToken = data.access_token;
-  tokenExpiresAt = Date.now() + data.expires_in * 1000;
-  return cachedAccessToken;
-}
-
 // ── Helpers ────────────────────────────────────────────────────
 
 async function getSettings() {
   try {
-    const token = await getAccessToken();
-    const res = await fetch(`${NEXUS_HOST_URL}/api/v1/settings`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (res.ok) return await res.json();
+    return await nexus.getSettings();
   } catch {}
   return {};
 }
@@ -87,15 +54,16 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // Config endpoint
+  // Config endpoint — provides access token + metadata for the UI (nexus-sdk)
   if (req.url === "/api/config") {
-    getAccessToken()
-      .then((token) => {
+    nexus
+      .getAccessToken()
+      .then(() => {
         res.writeHead(200, {
           "Content-Type": "application/json",
           "Access-Control-Allow-Origin": "*",
         });
-        res.end(JSON.stringify({ token, apiUrl: NEXUS_API_URL }));
+        res.end(JSON.stringify(nexus.getClientConfig()));
       })
       .catch((err) => {
         res.writeHead(500, { "Content-Type": "application/json" });

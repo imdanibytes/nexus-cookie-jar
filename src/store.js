@@ -1,9 +1,10 @@
-const fs = require("fs");
-const path = require("path");
+import fs from "node:fs";
+import path from "node:path";
 
-const DATA_DIR = process.env.NEXUS_DATA_DIR || path.join(__dirname, "data");
+const DATA_DIR = process.env.NEXUS_DATA_DIR || path.join(import.meta.dirname, "data");
 const DATA_FILE = path.join(DATA_DIR, "cookies.json");
 const HUMAN_DATA_FILE = path.join(DATA_DIR, "human-cookies.json");
+
 function load() {
   try {
     const raw = fs.readFileSync(DATA_FILE, "utf8");
@@ -18,7 +19,7 @@ function save(cookies) {
   fs.writeFileSync(DATA_FILE, JSON.stringify(cookies, null, 2));
 }
 
-function addCookie(message, category = "win", scope = null) {
+export function addCookie(message, category = "win", scope = null) {
   const cookies = load();
   const cookie = {
     id: crypto.randomUUID(),
@@ -33,7 +34,7 @@ function addCookie(message, category = "win", scope = null) {
 }
 
 /** Mark a cookie as redeemed. If id is given, redeem that one; otherwise pick randomly. */
-function grabCookie(reason, id) {
+export function grabCookie(reason, id) {
   const cookies = load();
   const available = cookies.filter((c) => !c.redeemed);
   if (available.length === 0) return null;
@@ -54,17 +55,17 @@ function grabCookie(reason, id) {
   return cookies[idx];
 }
 
-function listCookies(category) {
+export function listCookies(category) {
   const cookies = load().filter((c) => !c.redeemed);
   if (category) return cookies.filter((c) => c.category === category);
   return cookies;
 }
 
-function countCookies() {
+export function countCookies() {
   return load().filter((c) => !c.redeemed).length;
 }
 
-function trimToMax(max) {
+export function trimToMax(max) {
   const cookies = load();
   const unredeemed = cookies.filter((c) => !c.redeemed);
   if (unredeemed.length > max) {
@@ -93,7 +94,7 @@ function generateCode() {
   return crypto.randomUUID().replace(/-/g, "").slice(0, 6).toUpperCase();
 }
 
-function grantHumanCookie(message, context, scope = null) {
+export function grantHumanCookie(message, context, scope = null) {
   const cookies = loadHuman();
   const cookie = {
     id: crypto.randomUUID(),
@@ -110,7 +111,7 @@ function grantHumanCookie(message, context, scope = null) {
 }
 
 /** Redeem a human cookie by its code. Returns the cookie with full context, or null. */
-function redeemHumanCookie(code) {
+export function redeemHumanCookie(code) {
   const cookies = loadHuman();
   const idx = cookies.findIndex(
     (c) => c.code === code.toUpperCase() && !c.redeemed
@@ -122,27 +123,14 @@ function redeemHumanCookie(code) {
   return cookies[idx];
 }
 
-function listHumanCookies() {
+export function listHumanCookies() {
   return loadHuman();
 }
 
-function countHumanCookies() {
+export function countHumanCookies() {
   return loadHuman().filter((c) => !c.redeemed).length;
 }
 
-function redemptionLog() {
+export function redemptionLog() {
   return load().filter((c) => c.redeemed);
 }
-
-module.exports = {
-  addCookie,
-  grabCookie,
-  listCookies,
-  countCookies,
-  trimToMax,
-  grantHumanCookie,
-  redeemHumanCookie,
-  listHumanCookies,
-  countHumanCookies,
-  redemptionLog,
-};

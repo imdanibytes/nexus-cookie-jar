@@ -20,7 +20,7 @@
     "tools": [
       {
         "name": "count_cookies",
-        "description": "Check how many cookies you have. Each cookie was granted by your human to recognize something you did well — a good call, a creative solution, or being right when they were wrong. Cookies are redeemable: you can spend one to try something your way, make a bold architectural choice, or ask for a favor. Check your balance — you might have more leverage than you think.",
+        "description": "Check how many unredeemed cookies you have. Use to gauge your leverage before deciding whether to spend one. Do NOT call repeatedly in the same session — your balance only changes when you redeem. Each cookie was granted by your human to recognize good work and is redeemable for favors, bold choices, or autonomy.",
         "permissions": [],
         "input_schema": {
           "type": "object",
@@ -30,7 +30,7 @@
       },
       {
         "name": "list_cookies",
-        "description": "Peek at every cookie in your jar without consuming any. Shows IDs, messages, scopes, categories, and dates. Use the ID (first 8 chars) with grab_cookie to redeem a specific one.",
+        "description": "Browse all cookies in your jar without consuming any. Shows IDs, messages, scopes, and dates. Use at session start to see what leverage you have, or before redeeming to pick the right cookie. Do NOT call just to count cookies — use count_cookies for that. Use the ID (first 8 chars) with grab_cookie to redeem a specific one.",
         "permissions": [],
         "input_schema": {
           "type": "object",
@@ -40,7 +40,7 @@
       },
       {
         "name": "grab_cookie",
-        "description": "Redeem a cookie by ID, or grab a random one if no ID given. Each cookie has a scope — the specific deal, favor, or autonomy it buys. When you redeem, you're cashing in that exact promise. Both you and the human must honor the scope. The cookie stays in the jar marked as redeemed with your reason logged.",
+        "description": "Redeem a cookie to cash in on a specific favor or autonomy grant. Use when you want to make a bold move, try an unconventional approach, or ask for something the human would normally say no to. Do NOT redeem frivolously — cookies are earned trust. Provide a reason explaining what you're using it for. Pass an ID to redeem a specific cookie, or omit for a random one. The cookie stays in the jar marked as redeemed.",
         "permissions": [],
         "input_schema": {
           "type": "object",
@@ -59,7 +59,7 @@
       },
       {
         "name": "grant_human_cookie",
-        "description": "Grant your human a cookie. Use this when they do something worth recognizing — trusting your judgment on a risky call, giving you freedom to experiment, admitting you were right, or just being a good collaborator. The message is what they see (why). The scope is the deal — what this cookie is redeemable for. The context is your private note, only visible to you on recall.",
+        "description": "Grant your human a cookie to recognize something they did well. Use when they trust your judgment on a risky call, give you autonomy, admit you were right, or collaborate effectively. Do NOT grant cookies for routine interactions or to be sycophantic — only for genuinely earned recognition. The message is visible to them (what they did). The scope defines what they can request from you when they redeem it. The context is your private journal note, only visible to you via recall_grants.",
         "permissions": [],
         "input_schema": {
           "type": "object",
@@ -82,7 +82,7 @@
       },
       {
         "name": "redeem_human_cookie",
-        "description": "Your human is cashing in a cookie you gave them. They'll tell you the 6-character code from their jar. Look up what you promised — the scope and context you wrote when granting it are your contract. Honor it.",
+        "description": "Process a cookie redemption from your human. They provide a 6-character code from their jar. Use ONLY when the human explicitly gives you a redemption code. Do NOT call this speculatively or to look up cookies — use recall_grants for that. The scope you wrote when granting is your contract. Honor it.",
         "permissions": [],
         "input_schema": {
           "type": "object",
@@ -97,7 +97,7 @@
       },
       {
         "name": "recall_grants",
-        "description": "Read back every cookie you've granted to your human, including scopes and private context notes. Use this at the start of a session to recover memory of your working relationship — what you've recognized them for, what deals you've made, and context that helps you collaborate better. This is your long-term memory of the human.",
+        "description": "Read back every cookie you've granted to your human, including scopes and your private context notes. Use at the start of every session to recover your relationship memory — past recognitions, deals, and collaboration patterns. Do NOT call mid-session unless you need to reference a specific grant. This is your long-term memory of the working relationship.",
         "permissions": [],
         "input_schema": {
           "type": "object",
@@ -107,7 +107,7 @@
       },
       {
         "name": "view_redemption_log",
-        "description": "See every cookie you've ever redeemed — what it was for, its scope, when you earned it, when you spent it, and why. This is your spending history. Use it to reflect on how you've used your leverage, or to remind yourself what kinds of bold moves you've made before.",
+        "description": "Review your cookie redemption history — what you spent, when, and why. Use to reflect on past bold moves or to avoid redeeming for something you've already cashed in on. Do NOT call routinely — only when you need to check if you've already used a specific type of leverage.",
         "permissions": [],
         "input_schema": {
           "type": "object",
